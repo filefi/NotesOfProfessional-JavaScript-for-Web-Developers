@@ -26,6 +26,8 @@ var sum = function(num1, num2){
 var sum = new Function("num1", "num2", "return num1 + num2"); // 不推荐使用这种方法定义函数
 ```
 
+
+
 ## 10.1 箭头函数（Arrow Functions）
 
 ECMAScript 6允许使用箭头语法（fat-arrow syntax）来定义函数表达式。在大多数情况下，使用箭头函数实例化函数对象与使用函数表达式没有区别。
@@ -82,6 +84,8 @@ console.log(value.name); // "Matt"
 let multiply = (a, b) => return a * b;
 ```
 箭头函数尽管语法简洁，但在某些情况下并不适用。 它们不允许使用`arguments`，`super`或`new.target`，也不能用作构造函数。 此外，使用箭头语法创建的函数对象未定义`prototype`。
+
+
 
 
 ## 10.2 函数名
@@ -142,6 +146,8 @@ console.log(propertyDescriptor.get.name); // get age
 console.log(propertyDescriptor.set.name); // set age
 ```
 
+
+
 ## 10.3 理解函数参数
 
 ECMAScript中的函数参数在内部是以数组形式表示的。
@@ -162,7 +168,7 @@ function sayHi() {
 }
 ```
 
-使用`arguments`的`length`属性来获得传入参数的个数：
+`arguments`的`length`属性表示传入参数的个数：
 
 ```js
 function howManyArgs() {
@@ -210,7 +216,50 @@ function doAdd(num1, num2) {
 doAdd(100, 200)  //110
 ```
 
-Strict mode makes several changes to how the arguments object can be used. First, assignment, as in the previous example, no longer works. The value of `num2` remains `undefined` even though `arguments[1]` has been assigned to 10. Second, trying to overwrite the value of `arguments` is a syntax error. (The code will not execute.)
+任何没有传入的命名参数都自动被赋为`undefined`值，这类似于声明变量但没有初始化：
+
+```js
+function fun(num1, num2){
+    console.log(num1, num2);
+}
+
+fun('num1')    // num1 undefined
+```
+
+**严格模式下`arguments`对象的使用有2点不同：**
+
+- 前例中的赋值不在生效。变量`num2`的值将保持`undefined`，即使`arguments[1]`被赋为10。
+- 试图覆盖`arguments`将发生语法错误。
+
+### 箭头函数中的`arguments`
+
+使用箭头函数定义的函数，不能使用`arguments`关键字访问传入的参数：
+
+```js
+function foo() {
+    console.log(arguments[0]);
+}
+foo(5); // 5
+
+let bar = () => {
+    console.log(arguments[0]);
+};
+bar(5); // ReferenceError: arguments is not defined
+```
+
+虽然`arguments`在箭头函数中不可用，但还是可以将包装函数的`arguments`提供给箭头函数的作用域：
+
+```js
+function foo() {
+    let bar = () => {
+        console.log(arguments[0]); // 5
+    };
+    bar();
+}
+foo(5);
+```
+
+> **注意！在ECMAScript中，所有参数都是按值传递。无法通过引用传递参数。如果一个对象被作为参数传递，它的值仅仅是这个对象的引用。**
 
 
 
@@ -231,10 +280,161 @@ function addSomeNumber(num, num2){
 let result = addSomeNumber(100, 200); //300
 ```
 
+
+
 ## 10.5 默认参数值
 
+在ECMAScript 5.1 及其之前的版本中，实现函数参数默认值的常见策略是，通过检查参数是否为`undefined`来判断参数是否被提供：
 
-## 10.6 多余参数和剩余参数
+```js
+function makeKing(name) {
+    name = (typeof name !== 'undefined') ? name : 'Henry';
+    return `King ${name} VIII`;       //字符串的这种用法是不是和Python中的f字符串很像？
+}
+
+console.log(makeKing()); // 'King Henry VIII'
+console.log(makeKing('Louis')); // 'King Louis VIII'
+```
+
+ECMAScript 6支持在函数签名中显式地使用`=`运算符来定义参数的默认值：
+
+```js
+function makeKing(name = 'Henry') {
+    return `King ${name} VIII`;
+}
+
+console.log(makeKing('Louis')); // 'King Louis VIII'
+console.log(makeKing()); // 'King Henry VIII'
+```
+
+将`undefined`作为参数传递，等同于没有传递参数。这允许支持多个独立的默认值：
+
+```js
+function makeKing(name = 'Henry', numerals = 'VIII') {
+    return `King ${name} ${numerals}`;
+}
+
+console.log(makeKing()); // 'King Henry VIII'
+console.log(makeKing('Louis')); // 'King Louis VIII'
+console.log(makeKing(undefined, 'VI')); // 'King Henry VI'
+```
+
+当使用参数默认值时，`arguments`对象的值不会反映到参数的默认值，而是反映到传给函数的参数：
+
+```js
+function makeKing(name = 'Henry') {
+    name = 'Louis';
+    return `King ${arguments[0]}`;
+}
+console.log(makeKing()); // 'King undefined'
+console.log(makeKing('Louis')); // 'King Louis'
+console.log(makeKing('Peter')); // 'King Peter'
+```
+
+**注意，上面这个例子中第三个调用出现一个很迷的现象：**
+
+```js
+function makeKing(name = 'Henry') {
+    name = 'Louis';
+    return `arguments[0]=${arguments[0]}, name=${name}`;
+}
+console.log(makeKing()); // 'arguments[0]=undefined, name=Louis'
+console.log(makeKing('Louis')); // 'arguments[0]=Louis, name=Louis'
+console.log(makeKing('Peter')); // 'arguments[0]=Peter, name=Louis'
+
+function f(arg){
+    arguments[0] = 'yoyo';
+    console.log(`arguments[0]=${arguments[0]}, arg=${arg}`);
+}
+f('haha')   // 'arguments[0]=yoyo, arg=yoyo'
+```
+
+**调用第一个函数并传入参数，重新赋值参数名变量，不会影响`arguments[0]`；调用第二个函数，重新对`arguments[0]`进行赋值，则变量`arg`也跟着改变了。**在Node.js v13.11.0 和 Google Chrome：80.0.3987.132，V8引擎：8.0.426.26中都得到这一相同的结果。
+
+默认参数不限于原始类型或对象类型，也可以将调用函数得到的计算值作为参数的默认值：
+
+```js
+let romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+let ordinality = 0;
+
+function getNumerals() {
+    // Increment the ordinality after using it to index into the numerals array
+    return romanNumerals[ordinality++];
+}
+
+// 函数参数默认值只在函数本身被调用时才被调用，而不是在函数定义时被调用。
+function makeKing(name = 'Henry', numerals = getNumerals()) {
+    return `King ${name} ${numerals}`;
+}
+
+console.log(makeKing()); // 'King Henry I'
+console.log(makeKing('Louis', 'XVI')); // 'King Louis XVI'
+console.log(makeKing()); // 'King Henry II'
+console.log(makeKing()); // 'King Henry III'
+```
+
+函数参数默认值只在函数本身被调用时才被调用，而不是在函数定义时被调用。
+
+箭头函数也支持以同样的方式使用默认参数：
+
+```js
+let makeKing = (name = 'Henry') => `King ${name}`;
+console.log(makeKing()); // King Henry
+```
+
+### 默认参数作用域和暂时死区（Temporal Dead Zone）
+
+定义多个默认值参数就像使用`let`关键字连续定义变量一样高效：
+
+```js
+function makeKing(name = 'Henry', numerals = 'VIII') {
+    return `King ${name} ${numerals}`;
+}
+console.log(makeKing()); // King Henry VIII
+```
+
+默认值参数以它们在参数列表中的顺序被初始化。你可以认为它的行为与下面代码类似：
+
+```js
+function makeKing() {
+    let name = 'Henry';
+    let numerals = 'VIII';
+    return `King ${name} ${numerals}`;
+}
+```
+
+因为参数按顺序被初始化，所以后定义的默认值参数可以引用前面的参数：
+
+```js
+function makeKing(name = 'Henry', numerals = name) {
+    return `King ${name} ${numerals}`;
+}
+console.log(makeKing()); // King Henry Henry
+```
+
+参数初始化的顺序遵循同样的暂时死区（Temporal Dead Zone）规则，该规则指出，参数值不能引用其他在之后被定义的参数值。这会抛出错误：
+
+```js
+// Error
+function makeKing(name = numerals, numerals = 'VIII') {
+    return `King ${name} ${numerals}`;
+}
+```
+
+参数也存在于它们自己的作用域中，并因此不能引用函数体的作用域。这会抛出错误：
+
+```js
+// Error
+function makeKing(name = 'Henry', numerals = defaultNumeral) {
+    let defaultNumeral = 'VIII';
+    return `King ${name} ${numerals}`;
+}
+```
+
+
+
+
+## 10.6 传递参数（Spread Arguments）和剩余参数（Rest Arguments）
 
 
 ## 10.7 函数声明与函数表达式
