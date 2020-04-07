@@ -48,5 +48,115 @@
 
 ### 2.1.1 标签的位置
 
+`<script>`标签的放置位置通常有2个：
 
+- 所有`<script>`元素都应该放在页面的`<head>`元素中；
+- 把全部JavaScript引用放在`<body>`元素中页面内容的后面；
+
+按照传统的做法，所有`<script>`元素都应该放在页面的`<head>`元素中，例如：
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Example HTML Page</title>
+        <script src="example1.js"></script>
+        <script src="example2.js"></script>
+    </head>
+    <body>
+		<!-- 这里放内容 -->
+    </body>
+</html>
+```
+
+这种做法的缺点是，必须等到全部JavaScript代码都被下载、解析和执行完成以后，才能开始呈现页面的内容（浏览器在遇到`<body>`标签时才开始呈现内容）。如果页面中有很多JavaScript代码，会导致浏览器在呈现页面时出现明显的延迟，而延迟期间的浏览器窗口中将是一片空白。
+
+为了避免这个问题，现代Web应用程序一般都把全部JavaScript引用放在`<body>`元素中页面内容的后面，如下例所示：
+
+```html
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Example HTML Page</title>
+    </head>
+    <body>
+        <!-- 这里放内容 -->
+        <script src="example1.js"></script>
+        <script src="example2.js"></script>
+    </body>
+</html>
+```
+
+这样，在解析包含的JavaScript代码之前，页面的内容将完全呈现在浏览器中。
+
+### 2.1.2 延迟脚本
+`<script>`标签的`defer`属性的用途是表明脚本在执行时不会影响页面的构造。也就是说，脚本会被延迟到整个页面都解析完毕后再运行。相当于告诉浏览器立即下载，但延迟执行。
+
+```html
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Example HTML Page</title>
+        <script defer src="example1.js"></script>
+        <script defer src="example2.js"></script>
+    </head>
+    <body>
+        <!-- content here -->
+    </body>
+</html>
+```
+
+这个例子中，`<head>`中包含的`<script>`脚本将延迟到浏览器遇到`</html>`标签后再执行。HTML5规范要求 *延迟脚本* 按照它们出现的先后顺序执行，因此第一个延迟脚本会先于第二个延迟脚本执行，而这两个脚本会先于`DOMContentLoaded`事件执行。
+
+### 2.1.3 异步脚本
+`<script>`元素的`async`属性与`defer`属性类似，都用于改变处理脚本的行为。`async`只适用于外部脚本文件，并告诉浏览器立即下载文件。但与`defer`不同的是，标记为`async`的脚本并不保证按照指定它们的先后顺序执行。
+
+```html
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Example HTML Page</title>
+        <script async src="example1.js"></script>
+        <script async src="example2.js"></script>
+    </head>
+    <body>
+        <!-- 这里放内容 -->
+    </body>
+</html>
+```
+
+异步脚本一定会在页面的`load`事件前执行，但可能会在`DOMContentLoaded`事件触发之前或之后执行。
+
+### 2.1.4 动态脚本加载
+
+并不是只能使用静态`<script>`标签来获取脚本资源。JavaScript可以使用DOM API来动态添加`<script>`元素，并加载`<script>`元素所指定的资源。
+
+```js
+let script = document.createElement('script');
+script.src = 'gibberish.js';
+document.head.appendChild(script);
+```
+
+直到将`HTMLElement`被附加到DOM，此脚本本身运行时才会生成此资源请求。默认情况下，使用这种方式创建的脚本是异步的。然而，这可能会带来问题，因为不是所有浏览器都支持异步脚本请求。因此，要统一动态脚本加载行为，可以显式地将标签标记为同步：
+
+```js
+let script = document.createElement('script');
+script.src = 'gibberish.js';
+script.async = false;
+document.head.appendChild(script);
+```
+
+
+
+## 2.2 内联代码VS外部文件
+
+并不存在必须使用外部文件的硬性规定，但使用外部文件具有如下优点：
+
+- **可维护性**：遍及不同HTML页面的JavaScript会造成维护问题。但把所有JavaScript文件都放在一个文件夹中，开发人员因此也能够在不触及HTML标记的情况下，集中精力编辑JavaScript代码。
+- **可缓存**：浏览器能够根据具体的设置，缓存链接的所有外部JavaScript文件。也就是说，如果有两个页面都使用同一个文件，那么这个文件只需下载一次。
+- **适应未来**：通过外部文件来包含JavaScript无须使用前面提到XHTML或注释hack。HTML和XHTML包含外部文件的语法是相同的。
+
+
+
+## 2.3 文档模式
 
