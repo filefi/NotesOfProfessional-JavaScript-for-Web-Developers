@@ -90,7 +90,7 @@
 这样，在解析包含的JavaScript代码之前，页面的内容将完全呈现在浏览器中。
 
 ### 2.1.2 延迟脚本
-`<script>`标签的`defer`属性的用途是表明脚本在执行时不会影响页面的构造。也就是说，脚本会被延迟到整个页面都解析完毕后再运行。相当于告诉浏览器立即下载，但延迟执行。
+`<script>`标签的`defer`属性告诉浏览器立即下载脚本，但脚本会被延迟到整个页面都解析完毕后再运行。
 
 ```html
 <!DOCTYPE html>
@@ -159,4 +159,50 @@ document.head.appendChild(script);
 
 
 ## 2.3 文档模式
+
+- **混杂模式**会让IE的行为与（包含非标准特性的）IE5相同；
+
+- **标准模式**则让IE的行为更接近标准行为。虽然这两种模式主要影响CSS内容的呈现，但在某些情况下也会影响到JavaScript的解释执行。
+
+- **准标准模式**与标准模式之间的差异几乎可以忽略不计。不标准的地方主要体现在处理图片间隙的时候（在表格中使用图片时问题最明显）。
+
+对于**标准模式**，可以通过使用下面任何一种文档类型来开启：
+
+```html
+<!-- HTML 4.01 严格型 -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+
+<!-- XHTML 1.0 严格型 -->
+<!DOCTYPE html PUBLIC
+"-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<!-- HTML 5 -->
+<!DOCTYPE html>
+```
+
+
+
+## 2.4 `<noscript>`元素
+
+包含在`<noscript>`元素中的内容只有在下列情况下才会显示出来：
+
+- 浏览器不支持脚本；
+- 浏览器支持脚本，但脚本被禁用。
+
+```html
+<html> 
+  <head>
+    <title>Example HTML Page</title>
+    <script type="text/javascript" defer="defer" src="example1.js"></script>
+    <script type="text/javascript" defer="defer" src="example2.js"></script>
+  </head>
+  <body>
+    <noscript>
+      <p>本页面需要浏览器支持（启用）JavaScript。</p>
+    </noscript>
+  </body>
+</html>
+```
 
