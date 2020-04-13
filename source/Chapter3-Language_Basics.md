@@ -81,6 +81,83 @@ await
 
 ### 3.3.1 `var`关键字
 
+要定义变量，可以使用`var`操作符，后跟变量名（即一个标识符），如下所示：
+
+```js
+var message;
+```
+
+ECMAScript也支持在定义变量的同时设置变量的值：
+
+```js
+var message = "hi";
+```
+
+#### `var`声明的作用域
+
+注意，即用`var`操作符定义的变量将成为定义该变量的作用域中的局部变量。也就是说，如果在函数中使用`var`定义一个变量，那么这个变量在函数退出后就会被销毁，例如：
+
+```js
+function test() {
+    var message = "hi"; // local variable
+}
+test();
+console.log(message); // error!
+```
+
+像下面这样省略`var`操作符，从而创建一个全局变量：
+
+```js
+function test() {
+    message = "hi"; // global variable
+}
+test();
+console.log(message); // "hi"
+```
+
+可以使用一条语句定义多个变量（初始化或不初始化均可）：
+
+```js
+var message = "hi",
+    found = false,
+    age = 29;
+```
+
+#### `var`声明提升（Declaration Hoisting）
+
+当使用`var`时，下面这样的声明是可行的。因为使用`var`关键字声明的变量会被提升到函数作用域的顶部：
+
+```js
+function foo() {
+    console.log(age);
+    var age = 26;
+}
+foo(); // undefined
+```
+
+这样声明不会抛出错误，在ECMAScript 运行时看来，它等同于如下形式：
+
+```js
+function foo() {
+    var age;
+    console.log(age);
+    age = 26;
+}
+foo(); // undefined
+```
+
+声明提升还允许你使用冗余的`var`声明：
+
+```js
+function foo() {
+    var age = 16;
+    var age = 26;
+    var age = 36;
+    console.log(age);
+}
+foo(); // 36
+```
+
 
 
 ### 3.3.2 `let`声明
@@ -90,4 +167,45 @@ await
 ### 3.3.3 `const`声明
 
 
+
+### 3.3.4 Declaration Styles and Best Practices
+
+
+
+## 3.4 数据类型
+
+ECMAScript中有6种简单数据类型（也称为基本数据类型）：
+
+- `Undefined`
+- `Null`
+- `Boolean`
+- `Number`
+- `String`
+- `Symbol`
+
+
+还有1种复杂数据类型`Object`，`Object`本质上是由一组无序的名值对组成的。
+
+### 3.4.1 `typeof`操作符
+
+鉴于ECMAScript是松散类型的，因此需要`typeof`来检测给定变量的数据类型。对一个值使用`typeof`操作符可能返回下列某个字符串：
+
+- `"undefined"`：如果这个值未定义；
+- `"boolean"`：如果这个值是布尔值；
+- `"string"`：如果这个值是字符串；
+- `"number"`：如果这个值是数值；
+- `"object"`：如果这个值是对象或`null`；
+- `"function"`：如果这个值是函数。
+- `"symbol"`: 如果值是Symbol。
+
+像下面这样调用`typeof`操作符：
+
+```js
+let message = "some string";
+console.log(typeof message); // "string"
+console.log(typeof(message)); // "string"
+console.log(typeof 95); // "number"
+```
+
+### 3.4.2 `Undefined`类型
 
