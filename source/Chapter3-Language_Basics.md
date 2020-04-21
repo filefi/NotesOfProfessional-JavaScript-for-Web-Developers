@@ -209,3 +209,48 @@ console.log(typeof 95); // "number"
 
 ### 3.4.2 `Undefined`类型
 
+`Undefined`类型只有一个值，即特殊的`undefined`。在使用`var`或`let`声明变量但未对其加以初始化时，这个变量的值就是`undefined`，例如：
+
+```js
+let message;
+console.log(message == undefined); // true
+```
+
+已声明但未初始化的变量与尚未声明的变量是不一样的：
+
+```js
+let message; // this variable is declared but has a value of undefined
+// make sure this variable isn't declared
+// let age
+console.log(message); // "undefined"
+console.log(age); // causes an error
+```
+
+对未初始化和未声明的变量执行`typeof`操作符都返回了`undefined`值：
+
+```js
+let message; // this variable is declared but has a value of undefined
+// make sure this variable isn't declared
+// let age
+console.log(typeof message); // "undefined"
+console.log(typeof age); // "undefined"
+```
+
+值`undefined`是假的（falsy）， 因此，您可以在需要的地方进行更简洁的检查：
+
+```js
+let message; // this variable is declared but has a value of undefined
+// 'age' is not declared
+if (message) {
+    // This block will not execute
+}
+if (!message) {
+    // This block will execute
+}
+if (age) {
+    // This will throw an error
+}
+```
+
+### 3.4.3 Null类型
+
