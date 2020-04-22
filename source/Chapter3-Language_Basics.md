@@ -495,9 +495,10 @@ let lastName = `Jingleheimerschmidt`
 | `\\`       | 斜杠                                                         |
 | `\'`       | 单引号（`'`），在用单引号表示的字符串中使用。例如：`'He said, \'hey.\''` |
 | `\"`       | 双引号（`"`），在用双引号表示的字符串中使用。例如：`"He said, \"hey.\""` |
-| `\\``      | Backtick (`\`)—used when the string is delineated by backticks. Example: `He said,\`hey.\``. |
 | `\xnn`     | 以十六进制代码`nn`表示的一个字符（其中`n`为0～F）。例如，`\x41`表示`"A"` |
 | `\unnnn`   | 以十六进制代码`nnnn`表示的一个Unicode字符（其中`n`为0～F）。例如，`\u03a3`表示希腊字符Σ |
+
+![](_static/images/Chapter3-Language_Basics.assets/image-20200422225848537.png)
 
 #### 字符串的特点
 
