@@ -500,6 +500,13 @@ let lastName = `Jingleheimerschmidt`
 
 ![](_static/images/Chapter3-Language_Basics.assets/image-20200422225848537.png)
 
+变量`text`有28个字符，其中6个字符长的转义序列表示1个字符：
+
+```js
+let text = "This is the letter sigma: \u03a3.";
+console.log(text.length); // 28
+```
+
 #### 字符串的特点
 
 ECMAScript中的字符串是不可变的。要改变某个变量保存的字符串，首先要销毁原来的字符串，然后再用另一个包含新值的字符串填充该变量，例如：
@@ -508,3 +515,267 @@ ECMAScript中的字符串是不可变的。要改变某个变量保存的字符�
 let lang = "Java";
 lang = lang + "Script";
 ```
+
+#### 转换为字符串
+
+要把一个值转换为一个字符串有2种方式
+
+- 使用`toString()`方法。除了`null`和`undefined`值，数值、布尔值、对象和字符串值都有`toString()`方法。
+- 转型函数`String()`能够将任何类型的值转换为字符串。
+
+`toString()`方法唯一要做的就是返回相应值的字符串表现：
+```js
+let age = 11;
+let ageAsString = age.toString(); // 字符串 "11"
+let found = true;
+let foundAsString = found.toString(); // 字符串 "true"
+```
+
+调用数值的`toString()`方法时，可以传递一个参数：输出数值的基数。默认为10进制。
+```js
+let num = 10;
+console.log(num.toString()); // "10"
+console.log(num.toString(2)); // "1010"
+console.log(num.toString(8)); // "12"
+console.log(num.toString(10)); // "10"
+console.log(num.toString(16)); // "a"
+```
+
+在不知道要转换的值是不是`null`或`undefined`的情况下，可以使用转型函数`String()`将任何类型的值转换为字符串。`String()`函数遵循下列转换规则：
+
+- 如果值有`toString()`方法，则调用该方法（没有参数）并返回相应的结果；
+- 如果值是`null`，则返回`"null"`；
+- 如果值是`undefined`，则返回`"undefined"`。
+
+```js
+var value1 = 10;
+var value2 = true;
+var value3 = null;
+var value4;
+
+alert(String(value1));     // "10"
+alert(String(value2));     // "true"
+alert(String(value3));     // "null"
+alert(String(value4));     // "undefined"
+```
+
+#### 模板字面量（Template Literals）
+
+ECMAScript 6支持使用模板字面量定义字符串。模板字面量遵循换行符，可以定义多行内容。
+
+```js
+let myMultiLineString = 'first line\nsecond line';
+let myMultiLineTemplateLiteral = `first line
+second line`;
+
+console.log(myMultiLineString);
+// first line
+// second line"
+
+console.log(myMultiLineTemplateLiteral);
+// first line
+// second line
+
+console.log(myMultiLineString === myMultiLinetemplateLiteral); // true
+```
+
+在定义模板（如HTML）时，模板字面量特别有用：
+
+```js
+let pageHTML = `
+<div>
+    <a href="#">
+        <span>Jake</span>
+    </a>
+</div>`;
+```
+
+由于模板字面量将与反引号内的空格完全匹配，因此在定义它们时需要格外小心。
+
+```js
+// This template literal has 25 spaces following the line return character
+let myTemplateLiteral = `first line
+                         second line`;
+console.log(myTemplateLiteral.length); // 47
+
+// This template literal begins with a line return character
+let secondTemplateLiteral = `
+first line
+second line`;
+console.log(secondTemplateLiteral[0] === '\n'); // true
+
+// This template literal has no unexpected whitespace characters
+let thirdTemplateLiteral = `first line
+second line`;
+console.log(thirdTemplateLiteral[0]);
+// f
+```
+
+
+
+#### Interpolation
+
+
+
+#### Template Literal Tag Functions
+
+
+
+#### Raw Strings
+
+
+
+### 3.4.7 Symbol类型
+
+
+
+### 3.4.8 Object类型
+
+ECMAScript中的对象其实就是一组数据和功能的集合。对象可以通过执行`new`操作符后跟要创建的对象类型的名称来创建。而创建`Object`类型的实例并为其添加属性和（或）方法，就可以创建自定义对象，如下所示：
+
+```js
+let o = new Object();
+```
+
+在ECMAScript中，如果不给构造函数传递参数，则可以省略后面的那一对圆括号。
+
+```js
+let o = new Object; // 有效，但不推荐省略圆括号
+```
+
+`Object`的每个实例都具有下列属性和方法：
+
+- `constructor`：保存着用于创建当前对象的函数。对于前面的例子而言，构造函数（constructor）就是`Object()`。
+- `hasOwnProperty(propertyName)`：用于检查给定的属性在当前对象实例中（而不是在实例的原型中）是否存在。其中，作为参数的属性名（`propertyName`）必须以字符串形式指定（例如：`o.hasOwnProperty("name")`）。
+- `isPrototypeOf(object)`：用于检查传入的对象是否是另一个对象的原型。
+- `propertyIsEnumerable(propertyName)`：用于检查给定的属性是否能够使用`for-in`语句来枚举。与`hasOwnProperty()`方法一样，作为参数的属性名必须以字符串形式指定。
+- `toLocaleString()`：返回对象的字符串表示，该字符串与执行环境的地区对应。
+- `toString()`：返回对象的字符串表示。
+- `valueOf()`：返回对象的字符串、数值或布尔值表示。通常与`toString()`方法的返回值相同。
+
+由于在ECMAScript中`Object`是所有对象的基础，因此所有对象都具有这些基本的属性和方法。
+
+
+
+## 3.5 运算符
+
+ECMA-262描述了一组用于操作数据值的**运算符**，包括算术运算符（如加号和减号）、位运算符、关系运算符和相等运算符。在应用于对象时，相应的运算符通常都会调用对象的`valueOf()`和（或）`toString()`方法，以便取得可以运算的值。
+
+### 3.5.1 一元运算符
+
+只能操作一个值的操作符叫做**一元运算符**。
+
+#### 1. 递增和递减运算符
+
+递增：
+
+```js
+let age = 29;
+++age;
+age++;
+```
+
+递减：
+
+```js
+let age = 29;
+--age;
+age--;
+```
+
+所有这4个操作符对任何值都适用，也就是它们不仅适用于整数，还可以用于字符串、布尔值、浮点数值和对象。在应用于不同的值时，递增和递减操作符遵循下列规则：
+
+- 在应用于一个包含有效数字字符的字符串时，先将其转换为数字值，再执行加减1的操作。字符串变量变成数值变量。
+- 在应用于一个不包含有效数字字符的字符串时，将变量的值设置为`NaN`。字符串变量变成数值变量。
+- 在应用于布尔值`false`时，先将其转换为0再执行加减1的操作。布尔值变量变成数值变量。
+- 在应用于布尔值`true`时，先将其转换为1再执行加减1的操作。布尔值变量变成数值变量。
+- 在应用于浮点数值时，执行加减1的操作。
+- 在应用于对象时，先调用对象的`valueOf()`方法以取得一个可供操作的值。然后对该值应用前述规则。如果结果是`NaN`，则在调用`toString()`方法后再应用前述规则。对象变量变成数值变量。
+
+```js
+let s1 = "2";
+let s2 = "z";
+let b = false;
+let f = 1.1;
+let o = {
+    valueOf() {
+        return -1;
+    }
+};
+
+s1++; // value becomes numeric 3
+s2++; // value becomes NaN
+b++; // value becomes numeric 1
+f--; // value becomes 0.10000000000000009 (due to floating-point inaccuracies)
+o--; // value becomes numeric -2
+```
+
+
+
+#### 2. 一元加和减运算符
+
+一元加减运算符相当于正负号：
+
+```js
+let num = 25;
+num = +num;
+console.log(num); // 25
+
+let num = 25;
+num = -num;
+console.log(num); // -25
+```
+
+下面的例子展示了对不同数据类型应用一元加运算符的结果：
+
+```js
+let s1 = "01";
+let s2 = "1.1";
+let s3 = "z";
+let b = false;
+let f = 1.1;
+let o = {
+    valueOf() {
+        return -1;
+    }
+};
+
+
+s1 = +s1;        // 值变成数值1
+s2 = +s2;        // 值变成数值1.1
+s3 = +s3;        // 值变成NaN
+b = +b;          // 值变成数值0
+f = +f;          // 值未变，仍然是1.1
+o = +o;          // 值变成数值-1
+```
+
+下面的例子展示了对不同数据类型应用一元减运算符的结果：
+
+```js
+let s1 = "01";
+let s2 = "1.1";
+let s3 = "z";
+let b = false;
+let f = 1.1;
+let o = {
+    valueOf() {
+        return -1;
+    }
+};
+
+s1 = -s1;         // 值变成了数值-1
+s2 = -s2;         // 值变成了数值-1.1
+s3 = -s3;         // 值变成了NaN
+b = -b;           // 值变成了数值0
+f = -f;           // 变成了-1.1
+o = -o;           // 值变成了数值1
+```
+
+
+
+### 3.5.2 位运算符
+
+
+
+### 3.5.3 布尔运算符
+
