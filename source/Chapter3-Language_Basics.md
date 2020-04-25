@@ -659,7 +659,7 @@ let o = new Object; // 有效，但不推荐省略圆括号
 
 ## 3.5 运算符
 
-ECMA-262描述了一组用于操作数据值的**运算符**，包括算术运算符（如加号和减号）、位运算符、关系运算符和相等运算符。在应用于对象时，相应的运算符通常都会调用对象的`valueOf()`和（或）`toString()`方法，以便取得可以运算的值。
+ECMA-262描述了一组用于操作数据值的**运算符**，包括算术运算符（如加号和减号）、位运算符、关系运算符和相等运算符。 **在应用于对象时，相应的运算符通常都会调用对象的`valueOf()`和（或）`toString()`方法，以便取得可以运算的值。**
 
 ### 3.5.1 一元运算符
 
@@ -778,4 +778,159 @@ o = -o;           // 值变成了数值1
 
 
 ### 3.5.3 布尔运算符
+
+#### 逻辑非
+
+逻辑非操作符由一个叹号（`!`）表示，可以应用于ECMAScript中的任何值。无论这个值是什么数据类型，这个操作符都会返回一个布尔值。逻辑非操作符首先会将它的操作数转换为一个布尔值，然后再对其求反。也就是说，逻辑非操作符遵循下列规则：
+
+- 如果操作数是一个对象，返回`false`；
+- 如果操作数是一个空字符串，返回`true`；
+- 如果操作数是一个非空字符串，返回`false`；
+- 如果操作数是数值0，返回`true`；
+- 如果操作数是任意非0数值（包括`Infinity`），返回`false`；
+- 如果操作数是`null`，返回`true`；
+- 如果操作数是`NaN`，返回`true`；
+- 如果操作数是`undefined`，返回`true`。
+
+```js
+console.log(!false); // true
+console.log(!"blue"); // false
+console.log(!0); // true
+console.log(!NaN); // true
+console.log(!""); // true
+console.log(!12345); // false
+```
+
+同时使用两个逻辑非运算符可以将一个值转换为与其对应的布尔值，实际上等同于`Boolean()`转型函数的行为：
+
+```js
+console.log(!!"blue"); // true
+console.log(!!0); // false
+console.log(!!NaN); // false
+console.log(!!""); // false
+console.log(!!12345); // true
+```
+
+#### 逻辑与
+
+逻辑与运算符由两个和号（`&&`）表示，有两个操作数：
+
+```js
+let result = true && false;
+```
+
+在有一个操作数不是布尔值的情况下，逻辑与操作就不一定返回布尔值；此时，它遵循下列规则：
+
+- 如果第一个操作数是对象，则返回第二个操作数；
+- 如果第二个操作数是对象，则只有在第一个操作数的求值结果为`true`的情况下才会返回该对象；
+- 如果两个操作数都是对象，则返回第二个操作数；
+- 如果第一个操作数是`null`，则返回`null`；
+- 如果第一个操作数是`NaN`，则返回`NaN`；
+- 如果第一个操作数是`undefined`，则返回`undefined`。
+
+#### 逻辑或
+
+逻辑或操作符由两个竖线符号（`||`）表示，有两个操作数：
+
+```js
+var result = true || false;
+```
+
+如果有一个操作数不是布尔值，逻辑或也不一定返回布尔值；此时，它遵循下列规则：
+
+- 如果第一个操作数是对象，则返回第一个操作数；
+- 如果第一个操作数的求值结果为`false`，则返回第二个操作数；
+- 如果两个操作数都是对象，则返回第一个操作数；
+- 如果两个操作数都是`null`，则返回`null`；
+- 如果两个操作数都是`NaN`，则返回`NaN`；
+- 如果两个操作数都是`undefined`，则返回`undefined`。
+
+利用逻辑或的**短路操作**来避免为变量赋`null`或`undefined`值。例如：
+
+```js
+var myObject = preferredObject || backupObject;
+```
+
+如果`preferredObject`的值不是`null`，那么它的值将被赋给`myObject`；如果是`null`，则将`backupObject`的值赋给`myObject`。ECMAScript程序的赋值语句经常会使用这种模式。
+
+### 3.5.4 乘性运算符
+
+- 乘法 ：`*`
+- 除法：`/`
+- 求模：`%`
+
+```js
+let result = 34 * 56;
+let result = 66 / 11;
+let result = 26 % 5; // equal to 1
+```
+
+### 3.5.5 求幂运算符
+
+New in ECMAScript 7, `Math.pow()` now gets its own `**` operator, which behaves identically.
+
+```js
+console.log(Math.pow(3, 2); // 9
+console.log(3 ** 2); // 9
+
+console.log(Math.pow(16, 0.5); // 4
+console.log(16** 0.5); // 4
+```
+
+What’s more, the operator also gets its own exponentiate assignment operator, `**=`, which performs the exponentiation and subsequent assignment of the result:
+```js
+let squared = 3;
+squared **= 2;
+console.log(squared); // 9
+
+let sqrt = 16;
+sqrt **= 0.5;
+console.log(sqrt); // 4
+```
+
+### 3.5.6 加性运算符
+
+#### 加法
+
+如果有一个操作数是字符串，那么就要应用如下规则：
+
+- 如果两个操作数都是字符串，则将第二个操作数与第一个操作数拼接起来；
+- 如果只有一个操作数是字符串，则将另一个操作数转换为字符串，然后再将两个字符串拼接起来。
+
+```js
+let result1 = 5 + 5; // 两个数值相加
+console.log(result1); // 10
+
+let result2 = 5 + "5"; // 一个数值和一个字符串相加
+console.log(result2); // "55"
+
+let num1 = 5;
+let num2 = 10;
+let message = "The sum of 5 and 10 is " + num1 + num2;
+console.log(message); // "The sum of 5 and 10 is 510"
+
+let num1 = 5;
+let num2 = 10;
+let message = "The sum of 5 and 10 is " + (num1 + num2);
+console.log(message); // "The sum of 5 and 10 is 15"
+```
+
+#### 减法
+
+- 如果有一个操作数是字符串、布尔值、`null`或`undefined`，则先在后台调用`Number()`函数将其转换为数值，然后再根据前面的规则执行减法计算。如果转换的结果是`NaN`，则减法的结果就是`NaN`；
+- 如果有一个操作数是对象，则调用对象的`valueOf()`方法以取得表示该对象的数值。如果得到的值是`NaN`，则减法的结果就是`NaN`。如果对象没有`valueOf()`方法，则调用其`toString()`方法并将得到的字符串转换为数值。
+
+```js
+let result1 = 5 - true; // 4 because true is converted to 1
+let result2 = NaN - 1; // NaN
+let result3 = 5 - 3; // 2
+
+let result4 = 5 - ""; // 5 because "" is converted to 0
+let result5 = 5 - "2"; // 3 because "2" is converted to 2
+let result6 = 5 - null; // 5 because null is converted to 0
+```
+
+
+
+### 3.5.7 关系运算符
 
