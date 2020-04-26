@@ -1332,7 +1332,8 @@ ECMAScript中的函数使用`function`关键字来声明，后跟一组参数以
 ```js
 function functionName(arg0, arg1,...,argN) {
     statements
-    return value;
+    return value; // 通过return语句后跟要返回的值来实现返回值。
+    statments // 位于return语句之后的任何代码都永远不会执行。
 }
 ```
 
