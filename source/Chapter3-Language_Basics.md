@@ -1356,4 +1356,3 @@ sayHi("Nicholas", "how are you today?");
 - 不能把参数命名为`eval`或`arguments`；
 - 不能出现两个命名参数同名的情况。
 
-### 3.7.1 理解参数
