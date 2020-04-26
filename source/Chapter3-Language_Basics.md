@@ -934,3 +934,426 @@ let result6 = 5 - null; // 5 because null is converted to 0
 
 ### 3.5.7 关系运算符
 
+与ECMAScript中的其他操作符一样，当关系操作符的操作数使用了非数值时，也要进行数据转换或完成某些奇怪的操作。以下就是相应的规则。
+
+- 如果两个操作数都是数值，则执行数值比较。
+- 如果两个操作数都是字符串，则比较两个字符串对应的字符编码值。
+- 如果一个操作数是数值，则将另一个操作数转换为一个数值，然后执行数值比较。
+- 如果一个操作数是对象，则调用这个对象的`valueOf()`方法，用得到的结果按照前面的规则执行比较。如果对象没有`valueOf()`方法，则调用`toString()`方法，并用得到的结果根据前面的规则执行比较。
+- 如果一个操作数是布尔值，则先将其转换为数值，然后再执行比较。
+
+```js
+let result = "Brick" < "alphabet"; // true
+let result = "Brick".toLowerCase() < "alphabet".toLowerCase(); // false
+let result = "23" < "3"; // true
+let result = "23" < 3; // false
+let result1 = NaN < 3; // false
+let result2 = NaN >= 3; // false
+```
+
+
+
+### 3.5.8 相等运算符
+
+ECMAScript的解决方案就是提供两组操作符：**相等**和**不相等**——先转换再比较，**全等**和**不全等**——仅比较而不转换。
+
+#### 相等和不相等
+
+在转换不同的数据类型时，相等和不相等运算符遵循下列基本规则：
+
+- 如果有一个操作数是布尔值，则在比较相等性之前先将其转换为数值——`false`转换为0，而`true`转换为1；
+- 如果一个操作数是字符串，另一个操作数是数值，在比较相等性之前先将字符串转换为数值；
+- 如果一个操作数是对象，另一个操作数不是，则调用对象的`valueOf()`方法，用得到的基本类型值按照前面的规则进行比较；
+
+这2个运算符在进行比较时则要遵循下列规则：
+
+- `null`和`undefined`是相等的。
+- 要比较相等性之前，不能将`null`和`undefined`转换成其他任何值。
+- 如果有一个操作数是`NaN`，则相等运算符返回`false`，而不相等操作符返回`true`。重要提示：即使两个操作数都是`NaN`，相等操作符也返回`false`；因为按照规则，`NaN`不等于`NaN`。
+- 如果两个操作数都是对象，则比较它们是不是同一个对象。如果两个操作数都指向同一个对象，则相等操作符返回`true`；否则，返回`false`。
+
+一些特殊情况及比较结果：
+
+| 表　达　式            | 值      |
+| :------------------ | :------ |
+| `null == undefined` | `true`  |
+| `"NaN" == NaN`      | `false` |
+| `5 == NaN`          | `false` |
+| `NaN == NaN`        | `false` |
+| `NaN != NaN`        | `true`  |
+| `false == 0`        | `true`  |
+| `true == 1`         | `true`  |
+| `true == 2`         | `false` |
+| `undefined == 0`    | `false` |
+| `null == 0`         | `false` |
+| `"5"==5`            | `true`  |
+
+
+
+#### 全等和全不等
+
+全等操作符由3个等于号（`===`）表示，它只在两个操作数未经转换就相等的情况下返回`true`：
+
+```js
+let result1 = ("55" == 55);     //true，因为转换后相等
+let result2 = ("55" === 55);    //false，因为不同的数据类型不相等
+```
+
+全不等操作符由一个叹号后跟两个等于号（`!==`）表示，它在两个操作数未经转换就不相等的情况下返回`true`：
+
+```js
+let result1 = ("55" != 55);     //false，因为转换后相等
+let result2 = ("55" !== 55);    //true，因为不同的数据类型不相等
+```
+
+注意：`null == undefined`会返回`true`，因为它们是类似的值；但`null === undefined`会返回`false`，因为它们是不同类型的值。
+
+
+
+### 3.5.9 条件运算符
+
+条件操作符应该算是ECMAScript中最灵活的一种操作符了，而且它遵循与Java中的条件操作符相同的语法形式，如下面的例子所示：
+
+```js
+variable = boolean_expression ? true_value : false_value;
+```
+
+这行代码的含义就是基于对`boolean_expression`求值的结果，决定给变量`variable`赋什么值。如果求值结果为`true`，则给变量`variable`赋`true_value`值；如果求值结果为`false`，则给变量`variable`赋`false_value`值。
+
+
+
+### 3.5.10 赋值运算符
+
+简单的赋值操作符由等于号（`=`）表示，其作用就是把右侧的值赋给左侧的变量：
+
+```js
+let num = 10;
+```
+
+每个主要算术操作符（以及个别的其他操作符）都有对应的复合赋值操作符：
+
+- 乘/赋值（`*=`）；
+- 除/赋值（`/=`）；
+- 模/赋值（`%=`）；
+- 加/赋值（`+=`）；
+- 减/赋值（`-=`）；
+- 左移/赋值（`<<=`）；
+- 有符号右移/赋值（`>>=`）；
+- 无符号右移/赋值（`>>>=`）。
+
+### 3.5.11 逗号运算符
+
+使用逗号操作符可以在一条语句中执行多个操作：
+
+```js
+let num1=1, num2=2, num3=3;
+```
+
+逗号操作符还可以用于赋值。在用于赋值时，逗号操作符总会返回表达式中的最后一项，如下面的例子所示：
+
+```js
+let num = (5, 1, 4, 8, 0); // num的值为0
+```
+
+
+
+## 3.6 语句
+
+### 3.6.1 `if`语句
+
+以下是`if`语句的语法：
+
+```js
+if (condition1) statement1 else if (condition2) statement2 else statement3
+```
+
+```js
+if (i > 25) {
+    console.log("Greater than 25.");
+} else if (i < 0) {
+    console.log("Less than 0.");
+} else {
+    console.log("Between 0 and 25, inclusive.");
+}
+```
+
+### 3.6.2 `do-while`语句
+
+以下是`do-while`语句的 语法：
+
+```js
+do {
+    statement
+} while (expression);
+```
+
+```js
+let i = 0;
+do {
+    i += 2;
+} while (i < 10);
+```
+
+### 3.6.3 `while`语句
+
+以下是`while`语句的语法：
+
+```js
+while(expression) statement
+```
+
+下面是一个示例：
+
+```js
+let i = 0;
+while (i < 10) {
+    i += 2;
+}
+```
+
+### 3.6.4 `for`语句
+
+以下是`for`语句的语法：
+
+```js
+for (initialization; expression; post-loop-expression) statement
+```
+
+下面是一个示例：
+
+```js
+let count = 10;
+for (let i = 0; i < count; i++) {
+    console.log(i);
+}
+```
+
+`for`语句中的初始化表达式、控制表达式和循环后表达式都是可选的。将这三个表达式全部省略，就会创建一个无限循环，例如：
+
+```js
+for (;;) {          // 无限循环
+    doSomething();
+}
+```
+
+### 3.6.5　`for-in`语句
+
+`for-in`语句是一种精准的迭代语句，可以用来枚举对象的non-symbol keyed属性。以下是`for-in`语句的语法：
+
+```js
+for (property in expression) statement
+```
+
+下面是一个示例：
+
+```js
+for (const propName in window) {
+    document.write(propName);
+}
+```
+
+`for`语句中的`const`定义不是必须的，但是建议这样使用，以确保本地变量不会被修改。
+
+### 3.6.6 `for-of`语句
+
+`for-of`语句是一种精准的迭代语句，可以用来遍历(loop through)可迭代对象的元素。以下是`for-of`语句的语法：
+
+```js
+for (property of expression) statement
+```
+
+下面是一个示例：
+
+```js
+for (const el in [2,4,6,8) {
+document.write(el);
+}
+```
+
+`for`语句中的`const`定义不是必须的，但是建议这样使用，以确保本地变量不会被修改。
+
+> NOTE In ES2018, the for-of statement is extended as a for-await-of loop to support async iterables which produce promises.
+
+### 3.6.7 `label`语句
+
+使用`label`语句可以在代码中添加标签，以便将来使用。以下是`label`语句的语法：
+
+```js
+label: statement
+```
+
+下面是一个示例：
+
+```js
+start: for (let i = 0; i < count; i++) {
+console.log(i);
+}
+```
+
+例子中定义的`start`标签可以在将来由`break`或`continue`语句引用。加标签的语句一般都要与`for`语句等循环语句配合使用。
+
+### 3.6.8 `break`和`continue`语句
+
+```js
+let num = 0;
+for (let i = 1; i < 10; i++) {
+    if (i % 5 == 0) {
+        break;
+    }
+    num++;
+}
+console.log(num); // 4
+```
+
+```js
+let num = 0;
+for (let i = 1; i < 10; i++) {
+    if (i % 5 == 0) {
+        continue;
+    }
+    num++;
+}
+console.log(num); // 8
+```
+
+`break`和`continue`语句都可以与`label`语句联合使用，从而返回代码中特定的位置：
+
+```js
+let num = 0;
+outermost:
+for (let i = 0; i < 10; i++) {
+    for (let j = 0; j < 10; j++) {
+        if (i == 5 && j == 5) {
+            break outermost;
+        }
+        num++;
+    }
+}
+console.log(num); // 55
+```
+
+```js
+let num = 0;
+outermost:
+for (let i = 0; i < 10; i++) {
+    for (let j = 0; j < 10; j++) {
+        if (i == 5 && j == 5) {
+            continue outermost;
+        }
+        num++;
+    }
+}
+console.log(num); // 95
+```
+
+### 3.6.9 `with`语句
+
+`with`语句的作用是将代码的作用域设置到一个特定的对象中。`with`语句的语法如下：
+
+```js
+with (expression) statement;
+```
+
+```js
+with(location) {
+    let qs = search.substring(1);
+    let hostName = hostname;
+    let url = href;
+}
+```
+
+**严格模式下不允许使用`with`语句，否则将视为语法错误。**
+
+> 由于大量使用**`with`**语句会导致性能下降，同时也会给调试代码造成困难，因此在开发大型应用程序时，不建议使用**`with`**语句。
+
+### 3.6.10 `switch`语句
+
+```js
+switch (expression) {
+    case value1:
+        statement
+        break;
+    case value2:
+        statement
+        break;
+    case value3:
+        statement
+        break;
+    case value4:
+        statement
+        break;
+    default:
+        statement
+}
+```
+
+```js
+switch (expression) {
+    case expression1:
+        statement
+        break;
+    case expression2:
+        statement
+        break;
+    case expression3:
+        statement
+        break;
+    case expression4:
+        statement
+        break;
+    default:
+        statement
+}
+```
+
+有意省略`break`关键字可以做到混合几种情形的效果：
+
+```js
+switch (i) {
+    case 25: 
+        /* 合并两种情形 */
+    case 35: 
+        alert("25 or 35");
+        break;
+    case 45: 
+        alert("45");
+        break;
+    default: 
+        alert("Other");
+}
+```
+
+
+
+## 3.7 函数
+
+ECMAScript中的函数使用`function`关键字来声明，后跟一组参数以及函数体。函数的基本语法如下所示：
+
+```js
+function functionName(arg0, arg1,...,argN) {
+    statements
+    return value;
+}
+```
+
+示例：
+
+```js
+function sayHi(name, message) {
+    console.log("Hello " + name + ", " + message);
+}
+```
+
+函数可以通过其函数名来调用，后面还要加上一对圆括号和参数（圆括号中的参数如果有多个，可以用逗号隔开）。调用`sayHi()`函数的代码如下所示：
+
+```js
+sayHi("Nicholas", "how are you today?");
+```
+
+严格模式对函数有一些限制：
+
+- 不能把函数命名为`eval`或`arguments`；
+- 不能把参数命名为`eval`或`arguments`；
+- 不能出现两个命名参数同名的情况。
+
+### 3.7.1 理解参数
