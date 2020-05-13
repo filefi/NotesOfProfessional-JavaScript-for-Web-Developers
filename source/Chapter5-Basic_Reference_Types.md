@@ -228,7 +228,7 @@ console.log(pattern.lastIndex); // 13
 | `input`        | `$_`     | 最近一次要匹配的字符串。             |
 | `lastMatch`    | `$&`     | 最近一次的匹配项。                   |
 | `lastParen`    | `$+`     | 最近一次匹配的捕获组。               |
-| `leftContext`  | `$``     | `input`字符串中`lastMatch`之前的文本 |
+| `leftContext`  | $\`      | `input`字符串中`lastMatch`之前的文本 |
 | `rightContext` | `$'`     | `input`字符串中`lastMatch`之后的文本 |
 
 ```js
@@ -343,7 +343,7 @@ console.log(typeof obj); // "object"
 
 ### 5.3.1 `Boolean`类型
 
-
+ 
 
 
 
