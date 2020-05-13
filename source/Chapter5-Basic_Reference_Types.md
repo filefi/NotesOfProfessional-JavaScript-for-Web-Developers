@@ -343,15 +343,278 @@ console.log(typeof obj); // "object"
 
 ### 5.3.1 `Boolean`类型
 
- 
+ `Boolean`类型是与布尔值对应的引用类型。要创建`Boolean`对象，可以像下面这样调用`Boolean`构造函数并传入`true`或`false`值：
+
+```js
+let booleanObject = new Boolean(true);
+```
+
+`Boolean`类型的实例重写以下方法：
+
+- `valueOf()`方法：返回基本类型值`true`或`false`；
+- `toString()`方法：返回字符串`"true"`和`"false"`。
 
 
 
 ### 5.3.2 `Number`类型
 
+`Number`是与数字值对应的引用类型。要创建`Number`对象，可以在调用`Number`构造函数时向其中传递相应的数值：
 
+```js
+let numberObject = new Number(10);
+```
+
+`Number`类型重写了以下方法：
+
+- `valueOf()`：返回对象表示的基本类型的数值。
+- `toLocaleString()`：返回字符串形式的数值。
+- `toString()`：返回字符串形式的数值。
+
+可以为`toString()`方法传递一个表示基数的参数，告诉它返回几进制数值的字符串形式，如下面的例子所示：
+
+```js
+let num = 10;
+console.log(num.toString()); // "10"
+console.log(num.toString(2)); // "1010"
+console.log(num.toString(8)); // "12"
+console.log(num.toString(10)); // "10"
+console.log(num.toString(16)); // "a"
+```
+
+`Number`类型还提供了一些用于将数值格式化为字符串的方法：
+
+- `toFixed()`：按照指定的小数位返回数值的字符串表示；
+- `toExponential()`：返回以指数表示法（也称e表示法）表示的数值的字符串形式。
+- `toPrecision()`：这个方法接收一个参数，即表示数值的所有数字的位数（不包括指数部分）。可能会返回固定大小（fixed）格式，也可能返回指数（exponential）格式。
+
+```js
+let num = 10;
+console.log(num.toFixed(2)); // "10.00"
+
+let num = 10.005;
+console.log(num.toFixed(2)); // "10.01"
+
+let num = 10;
+console.log(num.toExponential(1)); // "1.0e+1"
+
+let num = 99;
+console.log(num.toPrecision(1)); // "1e+2"
+console.log(num.toPrecision(2)); // "99"
+console.log(num.toPrecision(3)); // "99.0"
+```
+
+#### The `isInteger()` Method and Safe Integers
+
+ES6中新引入的`Number.isInteger()`方法能够辨别数字值是否存储为整数：
+
+```js
+console.log(Number.isInteger(1)); // true
+console.log(Number.isInteger(1.00)); // true
+console.log(Number.isInteger(1.01)); // false
+```
 
 
 
 ### 5.3.3 `String`类型
+
+`String`类型是字符串的对象包装类型，可以像下面这样使用`String`构造函数来创建：
+
+```js
+let stringObject = new String("hello world");
+```
+
+继承的`valueOf()`、`toLocaleString()`和`toString()`方法，都返回对象所表示的基本字符串值。
+
+`String`类型的每个实例都有一个`length`属性，表示字符串中包含字符的个数。
+
+#### 5.3.3.1 JavaScript字符
+
+第4版内容
+
+涉及方法：
+
+- `charAt()`
+- `charCodeAt()`
+- `fromCharCode()`
+- `codePointAt()`
+- `fromCodePoint()`
+
+#### 5.3.3.2 `normalize()`方法
+
+第4版内容
+
+#### 5.3.3.3 字符串操作方法
+
+- `concat()`：用于将一或多个字符串拼接起来，返回拼接得到的新字符串。
+- `slice()`：返回字符串的切片。第1个参数指定子字符串的开始位置，第2个参数（可选参数）表示子字符串到哪里结束；不指定则将字符串末尾作为结束位置。
+- `substr()`：返回字符串的子串。第1个参数指定子字符串的开始位置，第2个参数（可选参数）表示子字符串最后一个字符后面的位置；不指定则将字符串末尾作为结束位置。
+- `substring()`：返回字符串的子串。第1个参数指定子字符串的开始位置，第2个参数（可选参数）表示返回的字符个数；不指定则将字符串末尾作为结束位置。
+
+```js
+let stringValue = "hello ";
+let result = stringValue.concat("world", "!");
+console.log(result); // "hello world!"
+console.log(stringValue); // "hello"
+
+let stringValue = "hello world";
+console.log(stringValue.slice(3)); // "lo world"
+console.log(stringValue.substring(3)); // "lo world"
+console.log(stringValue.substr(3)); // "lo world"
+console.log(stringValue.slice(3, 7)); // "lo w"
+console.log(stringValue.substring(3,7)); // "lo w"
+console.log(stringValue.substr(3, 7)); // "lo worl"
+
+console.log(stringValue.slice(-3)); // "rld"
+console.log(stringValue.substring(-3)); // "hello world"
+console.log(stringValue.substr(-3)); // "rld"
+console.log(stringValue.slice(3, -4)); // "lo w"
+console.log(stringValue.substring(3, -4)); // "hel"
+console.log(stringValue.substr(3, -4)); // "" (empty string)
+```
+
+
+
+#### 5.3.3.4 字符串位置方法
+
+以下2个方法搜索给定的子字符串，然后返子字符串的位置（如果没有找到该子字符串，则返回`-1`）：
+
+- `indexOf()`：从字符串的开头向后搜索。
+- `lastIndexOf()`：从字符串的末尾向前搜索。
+
+第1个参数表示待搜索的子字符串；第2个参数（可选）表示从字符串中的哪个位置开始搜索：
+
+```js
+let stringValue = "hello world";
+console.log(stringValue.indexOf("o")); // 4
+console.log(stringValue.lastIndexOf("o")); // 7
+
+let stringValue = "hello world";
+console.log(stringValue.indexOf("o", 6)); // 7
+console.log(stringValue.lastIndexOf("o", 6)); // 4
+```
+
+
+
+#### 5.3.3.5 字符串包含方法（String Inclusion Methods）
+
+ECMAScript 6 添加了3个额外的方法来判断给定的字符串是否被包含在另一个字符串中；是，则返回`true`，否则返回`false`：
+
+- `startsWith()`：从索引0开始匹配。
+
+- `endsWith()`：从索引 `(string.length – substring.length)`开始查找。
+
+- `includes()`：检查整个字符串。
+
+```js
+let message = "foobarbaz";
+console.log(message.startsWith("foo")); // true
+console.log(message.startsWith("bar")); // false
+
+console.log(message.endsWith("baz")); // true
+console.log(message.endsWith("bar")); // false
+
+console.log(message.includes("bar")); // true
+console.log(message.includes("qux")); // false
+```
+
+`startsWith()`和`includes()` 方法接受第2个参数（可选） ：表示开始搜索的位置。
+
+```js
+let message = "foobarbaz";
+console.log(message.startsWith("foo")); // true
+console.log(message.startsWith("foo", 1)); // false
+
+console.log(message.includes("bar")); // true
+console.log(message.includes("bar", 4)); // false
+```
+
+`endsWith()` 方法接受第2个参数（可选），该参数指出哪个位置将被视作字符串的末尾：
+
+```js
+let message = "foobarbaz";
+console.log(message.endsWith("bar")); // false
+console.log(message.endsWith("bar", 6)); // true
+```
+
+
+
+#### 5.3.3.6 `trim()`方法
+
+`trim()`方法会创建一个字符串的副本，删除前置及后缀的所有空格，然后返回结果：
+
+```js
+let stringValue = " hello world ";
+let trimmedStringValue = stringValue.trim();
+console.log(stringValue); // " hello world "
+console.log(trimmedStringValue); // "hello world"
+```
+
+`trimLeft()`和`trimRight()`方法分别只删除字符串开头和字符串末尾的空白符。
+
+
+
+#### 5.3.3.7 `repeat()`方法
+
+`repeat()` 接受1个整数作为参数，并按照给定的参数拷贝这个字符串n次，并将所有字符串拼接起来。
+
+```js
+let stringValue = "na ";
+console.log(stringValue.repeat(16) + "batman");
+// na na na na na na na na na na na na na na na na batman
+```
+
+
+
+#### 5.3.3.8 `padStart()`和`padEnd()`方法
+
+第4版内容
+
+
+
+#### 5.3.3.9 String Iterators and Destructuring
+
+第4版内容
+
+
+
+#### 5.3.3.10 字符串大小写方法
+
+ECMAScript中涉及字符串大小写转换的方法有4个：
+
+- `toLowerCase()`
+- `toLocaleLowerCase()`
+- `toUpperCase()`
+- `toLocaleUpperCase()`。
+
+```js
+let stringValue = "hello world";
+console.log(stringValue.toLocaleUpperCase()); // "HELLO WORLD"
+console.log(stringValue.toUpperCase()); // "HELLO WORLD"
+console.log(stringValue.toLocaleLowerCase()); // "hello world"
+console.log(stringValue.toLowerCase()); // "hello world"
+```
+
+
+
+#### 5.3.3.11 字符串模式匹配方法
+
+```js
+let text = "cat, bat, sat, fat";
+let pattern = /.at/;
+
+
+//与pattern.exec(text)相同
+let matches = text.match(pattern);
+console.log(matches.index); // 0
+console.log(matches[0]); // "cat"
+console.log(pattern.lastIndex); // 0
+```
+
+
+
+#### 5.3.3.12 `localeCompare()`方法
+
+
+
+#### 5.3.3.13 HTML方法
 
