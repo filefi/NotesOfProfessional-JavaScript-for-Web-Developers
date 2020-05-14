@@ -126,7 +126,7 @@ let allFives = new Date(Date.UTC(2005, 4, 5, 17, 55, 55));
 
 ## 5.2 `RegExp`类型
 
-ECMAScript通过`RegExp`类型来支持正则表达式。创建正则表达式的第一种方式是使用字面量形式：
+ECMAScript通过`RegExp`类型来支持正则表达式。创建正则表达式的第1种方式是使用字面量形式：
 
 ```js
 let expression = /pattern/flags;
