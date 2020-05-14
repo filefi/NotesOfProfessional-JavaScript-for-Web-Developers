@@ -145,14 +145,22 @@ let pattern2 = new RegExp("[bc]at", "i");
 
 由于`RegExp`构造函数的模式参数是字符串，所以在某些情况下要对字符进行双重转义。
 
+正则表达式的匹配模式支持下列标志：
+
+- **`g`**：表示全局（global）模式，即模式将被应用于所有字符串，而非在发现第一个匹配项时立即停止；
+- **`i`**：表示不区分大小写（case-insensitive）模式，即在确定匹配项时忽略模式与字符串的大小写；
+- **`m`**：表示多行（multiline）模式，即在到达一行文本末尾时还会继续查找下一行中是否存在与模式匹配的项；
+- `y`：Indicates sticky mode, meaning the pattern will only look at the string contents beginning at *lastIndex*.
+- `u`：Indicates Unicode mode is enabled.
+
 ### 5.2.1 `RegExp`实例属性
 
 `RegExp`的每个实例都具有下列属性，通过这些属性可以取得有关模式的各种信息。
 
 - **`global`**：布尔值，表示是否设置了`g`标志。
 - **`ignoreCase`**：布尔值，表示是否设置了`i`标志。
-- **`unicode`**: A Boolean value indicating whether the u flag has been set.
-- **`sticky`**: A Boolean value indicating whether the y flag has been set.
+- **`unicode`**: A Boolean value indicating whether the `u` flag has been set.
+- **`sticky`**: A Boolean value indicating whether the `y` flag has been set.
 - **`lastIndex`**：整数，表示开始搜索下一个匹配项的字符位置，从0算起。
 - **`multiline`**：布尔值，表示是否设置了`m`标志。
 - **`source`**：正则表达式的字符串表示，按照字面量形式而非传入构造函数中的字符串模式返回。
@@ -219,7 +227,7 @@ console.log(matches[0]); // sat
 console.log(pattern.lastIndex); // 13
 ```
 
-### 5.2.3　`RegExp`构造函数属性
+### 5.2.3 `RegExp`构造函数属性
 
 `RegExp`构造函数包含一些属性（这些属性在其他语言中被看成是静态属性）：
 
@@ -598,10 +606,16 @@ console.log(stringValue.toLowerCase()); // "hello world"
 
 #### 5.3.3.11 字符串模式匹配方法
 
+`String`类型定义了用于在字符串中匹配模式的方法：
+
+- `match()`：本质上等同于调用`RegExp`的`exec()`方法。`match()`方法只接受1个参数，要么是一个正则表达式，要么是一个`RegExp`对象。
+- `search()`：返回字符串中第一个匹配项的索引；如果没有找到匹配项，则返回`-1`。而且，`search()`方法始终是从字符串开头向后查找模式。
+- `replace()`：这个方法接受两个参数：第1个参数可以是一个`RegExp`对象或者一个字符串，第2个参数可以是一个字符串或者一个***函数***。如果第1个参数是字符串，那么只会替换第一个子字符串；如果第1个参数是正则表达式并指定了全局标志（`g`），则会替换所有子字符串。 **注意，Python的`re`模块的`sub()`方法的第2个参数同样既可以是字符串也可以是函数！**
+- `split()`：基于指定的分隔符将一个字符串分割成多个子字符串，并将结果放在一个数组中。分隔符可以是一个字符串或一个`RegExp`对象。
+
 ```js
 let text = "cat, bat, sat, fat";
 let pattern = /.at/;
-
 
 //与pattern.exec(text)相同
 let matches = text.match(pattern);
@@ -610,11 +624,251 @@ console.log(matches[0]); // "cat"
 console.log(pattern.lastIndex); // 0
 ```
 
+```js
+let text = "cat, bat, sat, fat";
+let pos = text.search(/at/);
+console.log(pos); // 1
+```
+
+```js
+let text = "cat, bat, sat, fat";
+let result = text.replace("at", "ond");
+console.log(result); // "cond, bat, sat, fat"
+
+result = text.replace(/at/g, "ond");
+console.log(result); // "cond, bond, sond, fond"
+```
+
+如果`replace()`方法的第2个参数是字符串，那么还可以使用一些特殊的字符序列，将正则表达式操作得到的值插入到结果字符串中：
+
+```js
+let text = "cat, bat, sat, fat";
+result = text.replace(/(.at)/g, "word ($1)");
+console.log(result); // word (cat), word (bat), word (sat), word (fat)
+```
+
 
 
 #### 5.3.3.12 `localeCompare()`方法
 
+`localeCompare()`方法比较两个字符串，并返回下列值中的一个：
+
+- 如果字符串在字母表中应该排在字符串参数之前，则返回一个负数（大多数情况下是`-1`，具体的值要视实现而定）；
+- 如果字符串等于字符串参数，则返回`0`；
+- 如果字符串在字母表中应该排在字符串参数之后，则返回一个正数（大多数情况下是`1`，具体的值同样要视实现而定）。
+
+```js
+let stringValue = "yellow";
+console.log(stringValue.localeCompare("brick")); // 1
+console.log(stringValue.localeCompare("yellow")); // 0
+console.log(stringValue.localeCompare("zoo")); // -1
+```
+
 
 
 #### 5.3.3.13 HTML方法
+
+| 方　　法             | 输出结果            |
+| :------------------- | :------------------ |
+| `anchor(name)`     | `<a name= "name">string</a>`          |
+| `big()`              | `<big>string</big>`          |
+| `bold()`             | `<b>string</b>`          |
+| `fixed()`            | `<tt>string</tt>`          |
+| `fontcolor(color)` | `<font color="color">string</font>`          |
+| `fontsize(size)`   | `<font size="size">string</font>`          |
+| `italics()`          | `<i>string</i>`          |
+| `link(url)`          | `<a href="url">string</a>` |
+| `small()`            | `<small>string</small>`          |
+| `strike()`           | `<strike>string</strike>`      |
+| `sub()`              | `<sub>string</sub>`          |
+| `sup()`              | `<sup>string</sup>`          |
+
+
+
+## 5.4 单体内置对象
+
+ECMA-262对内置对象的定义是：“由ECMAScript实现提供的、不依赖于宿主环境的对象，这些对象在ECMAScript程序执行之前就已经存在了。”
+
+ECMA-262还定义了两个单体内置对象：
+
+- `Global`
+- `Math`
+
+### 5.4.1 `Global`对象
+
+**事实上，没有全局变量或全局函数；所有在全局作用域中定义的属性和函数，都是`Global`对象的属性。**
+
+#### URI编码方法
+
+`Global`对象的以下方法可以对URI进行编码：
+
+- `encodeURI()`：用于整个URI进行编码。
+- `decodeURI()`：用于对URI中的某一段进行编码。
+- `encodeURIComponent()`：用于整个URI进行解码。
+- `decodeURIComponent()`：用于对URI中的某一段进行解码。
+
+```js
+let uri = "http:// www.wrox.com/illegal value.js#start";
+// "http:// www.wrox.com/illegal%20value.js#start"
+console.log(encodeURI(uri));
+// "http%3A%2F%2Fwww.wrox.com%2Fillegal%20value.js%23start"
+console.log(encodeURIComponent(uri));
+```
+
+```js
+let uri = "http%3A%2F%2Fwww.wrox.com%2Fillegal%20value.js%23start";
+// http%3A%2F%2Fwww.wrox.com%2Fillegal value.js%23start
+console.log(decodeURI(uri));
+// http:// www.wrox.com/illegal value.js#start
+console.log(decodeURIComponent(uri));
+```
+
+
+
+#### `eval()`方法
+
+`eval()`方法就像是一个完整的ECMAScript解析器，它只接受一个参数，即要执行的ECMAScript（或JavaScript）字符串。看下面的例子：
+
+```js
+eval("console.log('hi')");
+```
+
+通过`eval()`执行的代码被认为是包含该次调用的执行环境的一部分，因此被执行的代码具有与该执行环境相同的作用域链：
+
+```js
+// 通过eval()执行的代码可以引用在包含环境中定义的变量
+let msg = "hello world";
+eval("console.log(msg)"); // "hello world"
+
+// 在eval()调用中定义一个变量或函数，可以在该调用的外部代码中引用这个变量或函数
+eval("function sayHi() { console.log('hi'); }");
+sayHi();
+```
+
+> **注意：严格模式下，在外部访问不到`eval()`中创建的任何变量或函数，因此前面两个例子都会导致错误。**
+
+#### `window`对象
+
+ECMAScript虽然没有指出如何直接访问`Global`对象，但Web浏览器都是将这个全局对象作为`window`对象的一部分加以实现的。因此，在全局作用域中声明的所有变量和函数，就都成为了`window`对象的属性。
+
+
+
+### 5.4.2 `Math`对象
+
+`Math`对象是ECMAScript为保存数学公式和信息提供的一个公共位置。
+
+#### `Math`对象的属性
+
+| 属　　性       | 说　　明                         |
+| :------------- | :------------------------------- |
+| `Math.E`       | 自然对数的底数，即常量`e`的值    |
+| `Math.LN10`    | 10的自然对数                     |
+| `Math.LN2`     | 2的自然对数                      |
+| `Math.LOG2E`   | 以2为底`e`的对数                 |
+| `Math.LOG10E`  | 以10为底`e`的对数                |
+| `Math.PI`      | π的值                            |
+| `Math.SQRT1_2` | 1/2的平方根（即2的平方根的倒数） |
+| `Math.SQRT2`   | 2的平方根                        |
+
+####  `min()`和`max()`方法
+
+`min()`和`max()`方法用于确定一组数值中的最小值和最大值。这两个方法都可以接收任意多个数值参数：
+
+```js
+let max = Math.max(3, 54, 32, 16);
+console.log(max); // 54
+let min = Math.min(3, 54, 32, 16);
+console.log(min); // 3
+```
+
+要找到数组中的最大或最小值，可以像下面这样使用展开运算符（spread operator）：
+
+```js
+let values = [1, 2, 3, 4, 5, 6, 7, 8];
+let max = Math.max(...values);
+```
+
+也可以使用`apply()`方法：
+
+```js
+let values = [1, 2, 3, 4, 5, 6, 7, 8];
+let max = Math.max.apply(Math, values);
+```
+
+#### 舍入方法
+
+舍入方法分别遵循下列舍入规则：
+
+- `Math.ceil()`：执行向上舍入，即它总是将数值向上舍入为最接近的整数；
+- `Math.floor()`：执行向下舍入，即它总是将数值向下舍入为最接近的整数；
+- `Math.round()`：执行标准舍入，即它总是将数值四舍五入为最接近的整数；
+- `Math.fround()`: This method returns the nearest single precision (32 bits) floating point representation
+    of the number.
+
+```js
+console.log(Math.ceil(25.9)); // 26
+console.log(Math.ceil(25.5)); // 26
+console.log(Math.ceil(25.1)); // 26
+
+console.log(Math.round(25.9)); // 26
+console.log(Math.round(25.5)); // 26
+console.log(Math.round(25.1)); // 25
+
+console.log(Math.fround(0.4)); // 0.4000000059604645
+console.log(Math.fround(0.5)); // 0.5
+console.log(Math.fround(25.9)); // 25.899999618530273
+
+console.log(Math.floor(25.9)); // 25
+console.log(Math.floor(25.5)); // 25
+console.log(Math.floor(25.1)); // 25
+```
+
+
+
+#### `random()`方法
+
+`Math.random()`方法返回大于等于0小于1的一个随机数。套用下面的公式，就可以利用`Math.random()`从某个整数范围内随机选择一个值：
+
+```js
+值 = Math.floor(Math.random() * 可能值的总数 + 第一个可能的值)
+```
+
+举例来说，如果你想选择一个1到10之间的数值，可以像下面这样编写代码：
+
+```js
+let num = Math.floor(Math.random() * 10 + 1);
+```
+
+如果想要选择一个介于2到10之间的值，就应该将上面的代码改成这样：
+
+```js
+let num = Math.floor(Math.random() * 9 + 2);
+```
+
+
+
+#### 其他方法
+
+- `Math.abs(x)` Returns the absolute value of `x`
+- `Math.exp(x)` Returns `Math.E` raised to the power of `x`
+- `Math.expm1(x)` Equivalent to `Math.exp(x) - 1`
+- `Math.log(x)` Returns the natural logarithm of `x`
+- `Math.log1p(x)` Equivalent to `1 + Math.log(x)`
+- `Math.pow(x, power)` Returns `x` raised to the power of power
+- `Math.pow(...nums)` Returns the square root of the sum of the squares of each number in `nums`
+- `Math.clz32(x)` Returns the number of leading zeroes of a 32-bit integer x
+- `Math.sign(x)` Returns `1`, `0`, `-0`, or `-1` indicating the sign of `x`
+- `Math.trunc(x)` Returns the integer component of `x`, removing any decimals
+- `Math.sqrt(x)` Returns the square root of `x`
+- `Math.cbrt(x)` Returns the cubic root of `x`
+- `Math.acos(x)` Returns the arc cosine of `x`
+- `Math.acosh(x)` Returns the hyperbolic arc cosine of `x`
+- `Math.asin(x)` Returns the arc sine of `x`
+- `Math.asin(x)` Returns the hyperbolic arc sine of `x`
+- `Math.atan(x)` Returns the arc tangent of `x`
+- `Math.atanh(x)` Returns the hyperbolic arc tangent of `x`
+- `Math.atan2(y, x)` Returns the arc tangent of `y/x`
+- `Math.cos(x)` Returns the cosine of `x`
+- `Math.sin(x)` Returns the sine of `x`
+- `Math.tan(x)` Returns the tangent of `x`
 
