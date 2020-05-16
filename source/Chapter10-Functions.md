@@ -433,7 +433,7 @@ function makeKing(name = 'Henry', numerals = defaultNumeral) {
 
 
 
-## 10.6 传递参数（Spread Arguments）和剩余参数（Rest Arguments）
+## 10.6 展开参数（Spread Arguments）和剩余参数（Rest Arguments）
 
 
 
