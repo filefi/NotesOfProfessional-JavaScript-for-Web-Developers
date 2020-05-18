@@ -483,7 +483,9 @@ console.log(getSum(-1, ...values, 5)); // 14
 console.log(getSum(...values, ...[5,6,7])); // 28
 ```
 
-`arguments`对象完全不知道展开运算符（spread operator）的存在。 它将把值分解看作是单独的部分，因为这些参数就是以这种方式传递给函数的：
+The presence of the spread operator is totally unknown to the `arguments` object; it will treat the value being broken apart as separate pieces because that is how they are passed to the function:
+
+`arguments`对象完全不知道展开运算符（spread operator）的存在。 它将把这个被分解的值看作是单独的部分，因为这些参数就是以这种方式传递给函数的：
 
 ```js
 let values = [1,2,3,4]
