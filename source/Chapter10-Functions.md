@@ -443,7 +443,7 @@ function makeKing(name = 'Henry', numerals = defaultNumeral) {
 
 展开运算符（spread operator）在调用函数以及定义函数的参数时都非常有用。
 
-#### 展开参数（Spread Arguments）
+### 10.6.1 展开参数（Spread Arguments）
 
 与其将数组作为单个参数传递给函数，不如将一个数组的值分解并分别将每个值作为单独的参数传递，这通常更加实用。
 
@@ -522,7 +522,7 @@ console.log(getSum(...[0,1,2,3])); // 3
 
 
 
-#### 剩余参数（Rest Arguments）
+### 10.6.2 剩余参数（Rest Arguments）
 
 
 
