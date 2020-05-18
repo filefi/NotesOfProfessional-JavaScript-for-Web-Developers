@@ -15,7 +15,12 @@ function sum (num1, num2) {
 - 使用函数表达式定义函数：
 
 ```js
-var sum = function(num1, num2){
+let sum = function(num1, num2){
+    return num1 + num2;
+};
+
+// 使用箭头函数语法
+let sum = (num1, num2) => {
     return num1 + num2;
 };
 ```
@@ -23,6 +28,7 @@ var sum = function(num1, num2){
 - 使用`Function`构造函数：
 
 ```js
+// 这种语法会导致解析两次代码（第一次是解析常规ECMAScript代码，第二次是解析传入构造函数中的字符串），从而影响性能。
 var sum = new Function("num1", "num2", "return num1 + num2"); // 不推荐使用这种方法定义函数
 ```
 
@@ -434,6 +440,89 @@ function makeKing(name = 'Henry', numerals = defaultNumeral) {
 
 
 ## 10.6 展开参数（Spread Arguments）和剩余参数（Rest Arguments）
+
+展开运算符（spread operator）在调用函数以及定义函数的参数时都非常有用。
+
+#### 展开参数（Spread Arguments）
+
+与其将数组作为单个参数传递给函数，不如将一个数组的值分解并分别将每个值作为单独的参数传递，这通常更加实用。
+
+假设您定义了以下函数，该函数对作为参数传递的所有值求和：
+
+```js
+let values = [1, 2, 3, 4];
+function getSum() {
+    let sum = 0;
+    for (let i = 0; i < arguments.length; ++i) {
+        sum += arguments[i];
+    }
+    return sum;
+}
+```
+
+该函数期望其每个参数都是一个单独的数字，将对其进行迭代以查找总和。 函数外部的数组包含要求和的所有值，将此数组展平为单独（individual）参数的最明智的方法是不太优雅地使用`.apply()`方法：
+
+```js
+console.log(getSum.apply(null, values)); // 10
+```
+
+在ECMAScript 6中，您现在可以使用展开运算符（spread operator）更简洁地执行此操作。 将展开运算符（spread operator）应用于可迭代对象，并将其作为单个参数传递给函数，这会把这个大小为N的可迭代对象进行拆分，并将其作为N个单独的参数传递给函数。
+
+有了展开运算符（spread operator），可以直接在函数调用内部将外部数组解包(unpack)为多个单独的（individual）参数：
+
+```js
+console.log(getSum(...values)); // 10
+```
+
+因为数组的大小是已知的，所以在展开运算符（spread operator）之前或之后出现的其他参数（包括其他扩展运算符）没有任何限制：
+
+```js
+console.log(getSum(-1, ...values)); // 9
+console.log(getSum(...values, 5)); // 15
+console.log(getSum(-1, ...values, 5)); // 14
+console.log(getSum(...values, ...[5,6,7])); // 28
+```
+
+`arguments`对象完全不知道展开运算符（spread operator）的存在。 它将把值分解看作是单独的部分，因为这些参数就是以这种方式传递给函数的：
+
+```js
+let values = [1,2,3,4]
+
+function countArguments() {
+    console.log(arguments.length);
+}
+
+countArguments(-1, ...values);          // 5
+countArguments(...values, 5);           // 5
+countArguments(-1, ...values, 5);       // 6
+countArguments(...values, ...[5,6,7]);  // 7
+```
+
+`arguments`对象只是消耗 (consume) 展开参数的一种方法。 展开参数可以在标准函数和箭头函数中被用作命名参数，也可以用作默认参数：
+
+```js
+function getProduct(a, b, c = 1) {
+    return a * b * c;
+}
+
+let getSum = (a, b, c = 0) => {
+    return a + b + c;
+}
+
+console.log(getProduct(...[1,2])); // 2
+console.log(getProduct(...[1,2,3])); // 6
+console.log(getProduct(...[1,2,3,4])); // 6
+
+console.log(getSum(...[0,1])); // 1
+console.log(getSum(...[0,1,2])); // 3
+console.log(getSum(...[0,1,2,3])); // 3
+```
+
+
+
+
+
+#### 剩余参数（Rest Arguments）
 
 
 
