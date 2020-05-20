@@ -441,11 +441,11 @@ function makeKing(name = 'Henry', numerals = defaultNumeral) {
 
 ## 10.6 展开参数（Spread Arguments）和剩余参数（Rest Arguments）
 
-展开运算符（spread operator）在调用函数以及定义函数的参数时都非常有用。
+展开运算符（spread operator）在调用函数以及定义函数的参数时非常有用。
 
 ### 10.6.1 展开参数（Spread Arguments）
 
-与其将数组作为单个参数传递给函数，不如将一个数组的值分解并分别将每个值作为单独的参数传递，这通常更加实用。
+**与其将数组作为单个参数传递给函数，不如将一个数组的值分解并分别将每个值作为单独的参数传递，这通常更加实用。**
 
 假设您定义了以下函数，该函数对作为参数传递的所有值求和：
 
@@ -511,22 +511,69 @@ let getSum = (a, b, c = 0) => {
     return a + b + c;
 }
 
-console.log(getProduct(...[1,2])); // 2
-console.log(getProduct(...[1,2,3])); // 6
-console.log(getProduct(...[1,2,3,4])); // 6
+console.log(getProduct(...[1,2]));      // 2
+console.log(getProduct(...[1,2,3]));    // 6
+console.log(getProduct(...[1,2,3,4]));  // 6
 
-console.log(getSum(...[0,1])); // 1
-console.log(getSum(...[0,1,2])); // 3
-console.log(getSum(...[0,1,2,3])); // 3
+console.log(getSum(...[0,1]));        // 1
+console.log(getSum(...[0,1,2]));      // 3
+console.log(getSum(...[0,1,2,3]));    // 3
 ```
-
-
 
 
 
 ### 10.6.2 剩余参数（Rest Arguments）
 
+When composing a function definition, instead of handling parameters individually, it is possible to use the spread operator to combine ranges of parameters of variable length into a single array. In many ways, this is very similar to how the `arguments` object works, but in this case the rest parameter becomes a formal `Array` object.
 
+```js
+function getSum(...values) {
+    // Sequentially sum all elements in 'values'
+    // Initial total = 0
+    return values.reduce((x, y) => x + y, 0);
+}
+
+console.log(getSum(1,2,3)); // 6
+```
+
+If there are named parameters preceding the rest parameter, it will assume the size of the remaining parameters that remain unnamed, or an empty array if there are none. Because the rest parameter is variable in size, you are only able to use it as the last formal parameter:
+
+```js
+// Error
+function getProduct(...values, lastValue) {}
+
+// OK
+function ignoreFirst(firstValue, ...values) {
+    console.log(values);
+}
+
+ignoreFirst();         // []
+ignoreFirst(1);        // []
+ignoreFirst(1,2);      // [2]
+ignoreFirst(1,2,3);    // [2, 3]
+```
+
+Although arrow functions do not support the `arguments` object, they do support rest parameters, which affords you behavior that is extremely similar to arguments:
+
+```js
+let getSum = (...values) => {
+    return values.reduce((x, y) => x + y, 0);
+}
+
+console.log(getSum(1,2,3)); // 6
+```
+
+As you might expect, using a rest parameter does not affect the `arguments` object—it will still exactly reflect what was passed to the function:
+
+```js
+function getSum(...values) {
+    console.log(arguments.length);    // 3
+    console.log(arguments);           // [1, 2, 3]
+    console.log(values);              // [1, 2, 3]
+}
+
+console.log(getSum(1,2,3));
+```
 
 
 
