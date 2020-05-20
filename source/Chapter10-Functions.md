@@ -460,19 +460,27 @@ function getSum() {
 }
 ```
 
+This function expects each of its arguments to be an individual number that will be iterated through to find the sum. An array outside the function containing all the values you want to sum is a logical format, but the most prudent way to flatten this array into separate parameters is to inelegantly utilize `.apply()`:
+
 该函数期望其每个参数都是一个单独的数字，将对其进行迭代以查找总和。 函数外部的数组包含要求和的所有值，将此数组展平为单独（individual）参数的最明智的方法是不太优雅地使用`.apply()`方法：
 
 ```js
 console.log(getSum.apply(null, values)); // 10
 ```
 
+In ECMAScript 6, you are now able to perform this action more succinctly using the spread operator. Applying the spread operator to an iterable object and passing that as a single argument to a function will break apart that iterable object of size N and pass it to the function as N separate arguments.
+
 在ECMAScript 6中，您现在可以使用展开运算符（spread operator）更简洁地执行此操作。 将展开运算符（spread operator）应用于可迭代对象，并将其作为单个参数传递给函数，这会把这个大小为N的可迭代对象进行拆分，并将其作为N个单独的参数传递给函数。
+
+With the spread operator, you can unpack the outer array into individual arguments directly inside the function invocation:
 
 有了展开运算符（spread operator），可以直接在函数调用内部将外部数组解包(unpack)为多个单独的（individual）参数：
 
 ```js
 console.log(getSum(...values)); // 10
 ```
+
+Because the size of the array is known, there are no restrictions on other parameters appearing before or after the spread operator, including other spread operators:
 
 因为数组的大小是已知的，所以在展开运算符（spread operator）之前或之后出现的其他参数（包括其他扩展运算符）没有任何限制：
 
@@ -499,6 +507,8 @@ countArguments(...values, 5);           // 5
 countArguments(-1, ...values, 5);       // 6
 countArguments(...values, ...[5,6,7]);  // 7
 ```
+
+The `arguments` object is only one way to consume spread arguments. Spread arguments can be used as named parameters in both standard functions and arrow functions, as well as alongside default arguments:
 
 `arguments`对象只是消耗 (consume) 展开参数的一种方法。 展开参数可以在标准函数和箭头函数中被用作命名参数，也可以用作默认参数：
 
