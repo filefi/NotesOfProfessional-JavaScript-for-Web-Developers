@@ -911,8 +911,7 @@ if (condition) {
 
 ```js
 //可以这样做
-var sayHi;
-
+let sayHi;
 if (condition) {
     sayHi = function() {
         console.log("Hi!");
