@@ -1056,7 +1056,7 @@ createFunctions().forEach((item, index, arr)=> {console.log(item());})
 // 9
 ```
 
-但也可以使用`let`将每个变量`i`声明为不同的变量，这样每个闭包引用的就不再是同一个变量：
+但是，建议使用`let`将每个变量`i`声明为不同的变量，这样每个闭包引用的就不再是同一个变量：
 
 ```js
 function createFunctions(){
@@ -1081,4 +1081,65 @@ createFunctions().forEach((item, index, arr)=> {console.log(item());})
 // 8
 // 9
 ```
+
+
+
+### 10.14.2 `this`对象
+
+`this`对象是在运行时基于函数的执行环境绑定的：在全局函数中，`this`等于`window`，而当函数被作为某个对象的方法调用时，`this`等于那个对象。不过，匿名函数的执行环境具有全局性，因此其`this`对象通常指向`window`。
+
+```js
+window.identity = 'The Window';
+
+let object = {
+    identity: 'My Object',
+    getIdentityFunc() {
+        return function() {
+            return this.identity; 
+        };
+    }
+};
+
+console.log(object.getIdentityFunc()()); // 'The Window'
+// 为什么匿名函数没有取得其包含作用域（或外部作用域）的this对象呢？
+```
+
+由于每个函数都有自己的`this`对象，所以闭包会在作用域链中优先搜索到自己的`this`对象，所以闭包不会继续搜索外部函数的`this`对象并引用它；而匿名函数的`this`对象通常指向`window`，所以上例中闭包返回了自己的`this.identity`，即`window.identity`。把外部作用域中的`this`对象保存在一个闭包能够访问到的变量里，就可以让闭包访问该对象：
+
+```js
+window.identity = 'The Window';
+let object = {
+    identity: 'My Object',
+    getIdentityFunc() {
+        let that = this;
+        return function() {
+            return that.identity;
+        };
+    }
+};
+console.log(object.getIdentityFunc()()); // 'My Object'
+```
+
+
+
+### 10.14.3 内存泄漏
+
+由于IE9之前的版本对JScript对象和COM对象使用不同的垃圾收集例程，因此闭包在IE的这些版本中会导致一些特殊的问题。具体来说，如果闭包的作用域链中保存着一个HTML元素，那么就意味着该元素将无法被销毁。
+
+最好的办法是，手动解除对DOM对象的引用，如下所示：
+
+```js
+function assignHandler() {
+    let element = document.getElementById('someElement');
+    let id = element.id;
+    element.onclick = () => console.log(id);
+    element = null; // 解除对DOM对象的引用，顺利地减少其引用数，确保正常回收其占用的内存。
+}
+```
+
+记住，闭包会引用包含函数的整个活动对象，而其中包含着`element`。即使闭包不直接引用`element`，包含函数的活动对象中也仍然会保存一个引用。因此，有必要把`element`变量设置为`null`。这样就能够解除对DOM对象的引用，顺利地减少其引用数，确保正常回收其占用的内存。
+
+## 10.15 立即调用的函数表达式 (IMMEDIATELY INVOKED FUNCTION EXPRESSIONS, IIFE)
+
+
 

@@ -1148,7 +1148,7 @@ for (property in expression) statement
 
 ```js
 for (const propName in window) {
-    document.write(propName);
+    console.log(propName);
 }
 ```
 
@@ -1166,7 +1166,7 @@ for (property of expression) statement
 
 ```js
 for (const el in [2,4,6,8) {
-document.write(el);
+	console.log(el);
 }
 ```
 
