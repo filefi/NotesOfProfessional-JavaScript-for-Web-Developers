@@ -728,8 +728,8 @@ console.log(typedArr1); // Int16Array [1, 2, 3]
 console.log(typedArr2); // Int16Array [1, 2, 3]
 
 // Copy array into map
-let map = new Map(arr1.map((x) => [x, ‘val’ + x]));
-console.log(map); // Map {1 => ‘val 1’, 2 => ‘val 2’, 3 => ‘val 3’}
+let map = new Map(arr1.map((x) => [x, 'val' + x]));
+console.log(map); // Map {1 => 'val 1', 2 => 'val 2', 3 => 'val 3'}
 
 // Copy array in to set
 let set = new Set(typedArr2);
