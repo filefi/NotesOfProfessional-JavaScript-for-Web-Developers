@@ -626,7 +626,7 @@ function callSomeFunction(someFunction, someArgument){
   - `arguments.callee`：`arguments`的属性`callee`是一个指针，它指向拥有这个`arguments`对象的函数。
 - `this`：`this`引用的是函数执行的环境对象，或者也可以说是`this`值（当在网页的全局作用域中调用函数时，`this`对象引用的就是`window`）。
 - `caller`：这个属性中保存着调用当前函数的函数的引用，如果是在全局作用域中调用当前函数，它的值为`null`。
-- `new.target`：
+- `new.target`：用于确定函数是否通过`new`关键字调用的。
 
 `arguments.callee`的使用：
 
@@ -1139,6 +1139,123 @@ function assignHandler() {
 记住，闭包会引用包含函数的整个活动对象，而其中包含着`element`。即使闭包不直接引用`element`，包含函数的活动对象中也仍然会保存一个引用。因此，有必要把`element`变量设置为`null`。这样就能够解除对DOM对象的引用，顺利地减少其引用数，确保正常回收其占用的内存。
 
 ## 10.15 立即调用的函数表达式 (IMMEDIATELY INVOKED FUNCTION EXPRESSIONS, IIFE)
+
+## 10.16 私有变量
+
+任何在函数中定义的变量，都可以认为是私有变量，因为不能在函数的外部访问这些变量。私有变量包括：
+
+- 函数的参数
+- 局部变量
+- 在函数内部定义的其他函数
+
+我们把有权访问私有变量和私有函数的公有方法称为**特权方法**（privileged method）。有2种在对象上创建特权方法的方式。第1种是在构造函数中定义特权方法，基本模式如下：
+
+```js
+function MyObject() {
+	//私有变量和私有函数
+    let privateVariable = 10;
+    function privateFunction() {
+        return false;
+	}
+    
+    //特权方法
+    this.publicMethod = function() {
+        privateVariable++;
+        return privateFunction();
+    };
+}
+```
+
+这个模式在构造函数内部定义了所有私有变量和函数。然后，又继续创建了能够访问这些私有成员的特权方法。能够在构造函数中定义特权方法，是因为特权方法作为闭包有权访问在构造函数中定义的所有变量和函数。
+
+利用私有和特权成员，可以隐藏那些不应该被直接修改的数据，例如：
+
+```js
+function Person(name) {
+    //特权方法，可以在构造函数外部使用，而且都有权访问私有变量name。
+    this.getName = function() {
+        return name;
+	};
+    
+    //特权方法，可以在构造函数外部使用，而且都有权访问私有变量name。
+    this.setName = function (value) {
+        name = value;
+    };
+}
+
+let person = new Person('Nicholas');
+console.log(person.getName()); // 'Nicholas'
+person.setName('Greg');
+console.log(person.getName()); // 'Greg'
+```
+
+在构造函数中定义特权方法有一个 **缺点** ：那就是你必须使用构造函数模式来达到这个目的。而 **构造函数模式的缺点** 是针对每个实例都会创建同样一组新方法，而使用静态私有变量来实现特权方法就可以避免这个问题。
+
+### 10.16.1 静态私有变量
+
+通过在私有作用域中定义私有变量或函数，同样也可以创建特权方法，其基本模式如下所示：
+
+```js
+(function() {
+    // private variables and functions
+    let privateVariable = 10;
+    function privateFunction() {
+        return false;
+    }
+    
+    // constructor
+    MyObject = function() {};
+    
+    // public and privileged methods
+    MyObject.prototype.publicMethod = function() {
+        privateVariable++;
+        return privateFunction();
+    };
+})();
+```
+
+这个模式创建了一个私有作用域，并在其中封装了一个构造函数及相应的方法。在私有作用域中，首先定义了私有变量和私有函数，然后又定义了构造函数及其公有方法。公有方法是在原型上定义的，这一点体现了典型的原型模式。需要注意的是，这个模式在定义构造函数时并没有使用函数声明，而是使用了函数表达式。函数声明只能创建局部函数，但那并不是我们想要的。出于同样的原因，我们也没有在声明`MyObject`时使用变量声明关键字。记住：初始化未经声明的变量，总是会创建一个全局变量。因此，`MyObject`就成了一个全局变量，能够在私有作用域之外被访问到。
+
+> **注意：在严格模式下给未经声明的变量赋值会导致错误。**
+
+**这个模式与在构造函数中定义特权方法的主要区别** ：就在于私有变量和函数是由实例共享的。由于特权方法是在原型上定义的，因此所有实例都使用同一个函数。而这个特权方法，作为一个闭包，总是保存着对包含作用域的引用。
+
+```js
+(function() {
+    // 在这种模式下，变量name就变成了一个静态的、由所有实例共享的属性。
+    let name = '';
+    
+    Person = function(value) {
+        name = value;
+    };
+    
+    Person.prototype.getName = function() {
+        return name;
+    };
+    
+    // 在一个实例上调用setName()会影响所有实例。
+    Person.prototype.setName = function(value) {
+        name = value;
+    };
+})();
+
+let person1 = new Person('Nicholas');
+console.log(person1.getName()); // 'Nicholas'
+person1.setName('Matt');
+console.log(person1.getName()); // 'Matt'
+
+let person2 = new Person('Michael');
+console.log(person1.getName()); // 'Michael'
+console.log(person2.getName()); // 'Michael'
+```
+
+**以这种方式创建静态私有变量会因为使用原型而增进代码复用，但每个实例都没有自己的私有变量。**
+
+### 10.16.2 模块模式
+
+
+
+### 10.16.3 增强的模块模式
 
 
 
