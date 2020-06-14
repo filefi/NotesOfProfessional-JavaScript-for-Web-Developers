@@ -320,9 +320,15 @@ let person2 = new Person("Greg", 27, "Doctor");
 person1.sayName(); // Nicholas
 person2.sayName(); // Greg
 
-//这两个对象都有一个constructor（构造函数）属性，该属性指向Person
+// 这两个对象都有一个constructor（构造函数）属性，该属性指向Person
 console.log(person1.constructor == Person); // true
 console.log(person2.constructor == Person); // true
+
+// 这两个对象既是Object的实例，同时也是Person的实例
+console.log(person1 instanceof Object); // true
+console.log(person1 instanceof Person); // true
+console.log(person2 instanceof Object); // true
+console.log(person2 instanceof Person); // true
 ```
 
 在这个例子中，`Person()`函数取代了`createPerson()`函数。我们注意到，`Person()`中的代码除了与`createPerson()`存在以下不同之处：
