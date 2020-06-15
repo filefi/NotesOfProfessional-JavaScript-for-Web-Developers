@@ -341,9 +341,12 @@ console.log(person2 instanceof Person); // true
 
 **要创建`Person`的新实例，必须使用`new`操作符。以这种方式调用构造函数实际上会经历以下5个步骤：**
 
-1. 在内存中创建一个新对象；
-2. 将新对象内部的`[[Prototype]]`指针赋给构造函数的`prototype`属性；
-3. 将构造函数中的`this`值赋给新对象（因此`this`就指向了这个新对象）；
-4. 执行构造函数中的代码（为这个新对象添加属性）；
-5. 除非构造函数显式地返回一个其他非空值；否则，将返回新创建的对象。
+1. A new object is created in memory. 在内存中创建一个新对象；
+2. The new object’s internal `[[Prototype]]` pointer is assigned to the constructor’s `prototype`
+    property. 将新对象内部的`[[Prototype]]`指针赋给构造函数的`prototype`属性；
+3. The `this` value of the constructor is assigned to the new object (so `this` points to the
+    new object). 将构造函数的`this`值赋给新对象（因此`this`就指向了这个新对象）；
+4. The code inside the constructor is executed (adds properties to the new object). 执行构造函数中的代码（为这个新对象添加属性）；
+5. If the constructor function returns a non-null value, that object is returned. Otherwise, the
+    new object that was just created is returned. 除非构造函数显式地返回一个其他非空值；否则，将返回新创建的对象。
 
