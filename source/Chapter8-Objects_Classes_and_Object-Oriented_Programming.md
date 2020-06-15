@@ -350,3 +350,7 @@ console.log(person2 instanceof Person); // true
 5. If the constructor function returns a non-null value, that object is returned. Otherwise, the
     new object that was just created is returned. 除非构造函数显式地返回一个其他非空值；否则，将返回新创建的对象。
 
+**优点：创建自定义的构造函数意味着将来可以将它的实例标识为一种特定的类型；而这正是构造函数模式胜过工厂模式的地方。**
+
+> 以这种方式定义的构造函数是定义在`Global`对象（在浏览器中是`window`对象）中的。
+
