@@ -468,3 +468,166 @@ console.log(person1.sayName == person2.sayName); // true
 
 ### 8.2.4 原型模式 (The Prototype Pattern)
 
+**每个被创建的函数都有一个`prototype`（原型）属性，这个属性是一个指针，指向一个对象，而这个对象的用途是：包含可以由特定类型的所有实例共享的属性和方法。** 
+
+`prototype`就是通过调用构造函数而创建的那个对象实例的 ***原型对象*** 。
+
+使用 *原型对象* 的好处是可以让所有对象实例共享它所包含的属性和方法。
+
+```js
+function Person() {}
+
+Person.prototype.name = "Nicholas";
+Person.prototype.age = 29;
+Person.prototype.job = "Software Engineer";
+Person.prototype.sayName = function() {
+    console.log(this.name);
+};
+
+let person1 = new Person();
+person1.sayName(); // "Nicholas"
+
+let person2 = new Person();
+person2.sayName(); // "Nicholas"
+
+// person1和person2通过原型对象共享了相同的属性和方法
+console.log(person1.sayName == person2.sayName); // true
+```
+
+用函数表达式也同样适用：
+
+```js
+let Person = function() {};
+
+Person.prototype.name = "Nicholas";
+Person.prototype.age = 29;
+Person.prototype.job = "Software Engineer";
+Person.prototype.sayName = function() {
+    console.log(this.name);
+};
+
+let person1 = new Person();
+person1.sayName(); // "Nicholas"
+
+let person2 = new Person();
+person2.sayName(); // "Nicholas"
+
+// person1和person2通过原型对象共享了相同的属性和方法
+console.log(person1.sayName == person2.sayName); // true
+```
+
+#### 原型对象的工作原理
+
+只要创建了一个新函数，就会根据一组特定的规则为该函数创建一个`prototype`属性，这个属性指向函数的原型对象。
+
+在默认情况下，所有原型对象都会自动获得一个`constructor`（构造函数）属性，这个属性是一个指向`prototype`属性所在函数的指针。就拿前面的例子来说，`Person.prototype.constructor`指向`Person`。
+
+创建了自定义的构造函数之后，其原型对象默认只会取得`constructor`属性；至于其他方法，则都是从`Object`继承而来的。
+
+当调用构造函数创建一个新实例后，该实例的内部将包含一个指针（内部属性），指向构造函数的原型对象。在ECMA-262中，这个指针叫`[[Prototype]]`。虽然在脚本中没有标准的方式访问`[[Prototype]]`，但Firefox、Safari和Chrome在每个对象上都支持一个属性`__proto__`；而在其他实现中，这个属性对脚本则是完全不可见的。
+
+以前面使用`Person`构造函数和`Person.prototype`创建实例的代码为例，下图展示了各个对象之间的关系：
+
+![](_static/images/Chapter8-Objects_Classes_and_Object-Oriented_Programming.assets/09.d06z.01.png)
+
+以下代码也验证了其中的各种关系和原型对象的行为：
+
+```js
+/**
+* Constructor function can exist as function expression
+* or function declaration, so both of these are suitable:
+* function Person {}
+* let Person = function() {}
+*/
+function Person() {}
+
+/**
+* Upon declaration, the constructor function already
+* has a prototype object associated with it:
+*/
+console.log(typeof Person.prototype);
+console.log(Person.prototype);
+// {
+// constructor: f Person(),
+// __proto__: Object
+// }
+
+/**
+* As mentioned previously, the constructor function has
+* a 'prototype' reference to the prototype object, and
+* the prototype object has a 'constructor' reference to
+* the constructor function. These references are cyclical:
+*/
+console.log(Person.prototype.constructor === Person); // true
+
+/**
+* Any normal prototype chain will terminate at the Object prototype.
+* The prototype of the Object prototype is null.
+*/
+console.log(Person.prototype.__proto__ === Object.prototype); // true
+console.log(Person.prototype.__proto__.constructor === Object); // true
+console.log(Person.prototype.__proto__.__proto__ === null); // true
+
+console.log(Person.prototype.__proto__);
+// {
+// constructor: f Object(),
+// toString: ...
+// hasOwnProperty: ...
+// isPrototypeOf: ...
+// ...
+// }
+
+let person1 = new Person(),
+person2 = new Person();
+
+/**
+* The constructor, the prototype object, and an instance
+* are three completely distinct objects:
+*/
+console.log(person1 !== Person); // true
+console.log(person1 !== Person.prototype); // true
+console.log(Person.prototype !== person); // true
+
+/**
+* An instance is linked to the prototype through __proto__, which
+* is the literal manifestation of the [[Prototype]] hidden property.
+*
+* A constructor is linked to the prototype through the constructor property.
+*
+* An instance has no direct link to the constructor, only through the prototype.
+*/
+console.log(person1.__proto__ === Person.prototype); // true
+conosle.log(person1.__proto__.constructor === Person); // true
+
+/**
+* Two instances created from the same constructor function will share
+* a prototype object:
+*/
+console.log(person1.__proto__ === person2.__proto__); // true
+
+/**
+* instanceof will check the instance's prototype chain against the
+* prototype property of a constructor function:
+*/
+console.log(person1 instanceof Person); // true
+console.log(person1 instanceof Object); // true
+console.log(Person.prototype instanceof Object); // true
+```
+
+通过`isPrototypeOf()`方法来确定对象之间是否存在这种关系。如果`[[Prototype]]`指向调用`isPrototypeOf()`方法的对象（`Person.prototype`），那么这个方法就返回`true`，如下所示：
+
+```js
+// person1和person2内部都有一个指向Person.prototype的指针，因此都返回了true。
+console.log(Person.prototype.isPrototypeOf(person1)); // true
+console.log(Person.prototype.isPrototypeOf(person2)); // true
+```
+
+ECMAScript的`Object`对象有一个`Object.getPrototypeOf()`方法可以返回`[[Prototype]]`的值。 **利用`Object.getPrototypeOf()`可以方便地取得一个对象的原型，而这在利用原型实现继承的情况下是非常重要的。**
+
+```js
+// Object.getPrototypeOf()返回的对象就是这个对象的原型
+console.log(Object.getPrototypeOf(person1) == Person.prototype); // true
+// 取得了原型对象中name属性的值
+console.log(Object.getPrototypeOf(person1).name); // "Nicholas"
+```
+
