@@ -294,13 +294,13 @@ let person2 = createPerson("Greg", 27, "Doctor");
 
 函数`createPerson()`能够根据接受的参数来构建一个包含所有必要信息的`Person`对象。可以无数次地调用这个函数，而每次它都会返回一个包含三个属性一个方法的对象。
 
-**工厂模式虽然解决了创建多个相似对象的问题，但却没有解决对象识别的问题（即怎样知道一个对象的类型）。**
+**工厂模式虽然解决了创建多个相似对象的问题，但却没有解决对象识别的问题（即怎样知道一个对象的类型）。这个问题可以由 *构造函数模式* 解决。**
 
 
 
 ### 8.2.3 构造函数模式
 
-ECMAScript中的构造函数可用来创建特定类型的对象。我们也可以创建自定义的构造函数，从而定义自定义对象类型的属性和方法。
+ECMAScript 中的构造函数可用来创建特定类型的对象。我们也可以创建自定义的构造函数，从而定义自定义对象类型的属性和方法。
 
 例如，可以使用构造函数模式将前面的例子重写如下。
 
@@ -337,7 +337,7 @@ console.log(person2 instanceof Person); // true
 - 直接将属性和方法赋给了`this`对象；
 - 没有`return`语句。
 
-按照惯例，*构造函数* 始终都应该以一个大写字母开头，而 *非构造函数* 则应该以一个小写字母开头。
+按照惯例，***构造函数*** 始终都应该以一个大写字母开头，而 ***非构造函数*** 则应该以一个小写字母开头。
 
 **要创建`Person`的新实例，必须使用`new`操作符。以这种方式调用构造函数实际上会经历以下5个步骤：**
 
@@ -399,4 +399,72 @@ console.log(person1 instanceof Person); // true
 console.log(person2 instanceof Object); // true
 console.log(person2 instanceof Person); // true
 ```
+
+#### 构造函数本身也是函数
+
+**构造函数与其他函数的唯一区别，在于调用它们的方式不同。** 任何函数，只要通过`new`操作符来调用，那它就可以作为构造函数；而任何函数，如果不通过`new`操作符来调用，那它跟普通函数没什么两样。
+
+```js
+// 当作构造函数使用
+// 这也是构造函数的典型用法，即使用new操作符来创建一个新对象。
+let person = new Person("Nicholas", 29, "Software Engineer");
+person.sayName(); // "Nicholas"
+
+// 作为普通函数调用
+// 当在全局作用域中调用一个函数时，this对象总是指向Global对象（在浏览器中就是window对象）
+Person("Greg", 27, "Doctor"); // 属性和方法都被添加给window对象了
+window.sayName(); // "Greg"
+
+// 在另一个对象的作用域中调用
+// 可以使用call()（或者apply()）在某个特殊对象的作用域中调用Person()函数。
+let o = new Object();
+Person.call(o, "Kristen", 25, "Nurse"); // 在对象o的作用域中调用Person()
+// o就拥有了所有属性和sayName()方法
+o.sayName(); // "Kristen"
+```
+
+#### 构造函数的问题
+
+**使用构造函数的主要问题，就是每个方法都是`Function`对象的不同实例，即，构造函数创建出的不同对象的方法没有共享同一`Function`实例。** 在前面的例子中，`person1`和`person2`都有一个名为`sayName()`的方法，但那两个方法是`Function`的两个不同实例。因此，不同实例上的同名函数是不相等的，如下所示：
+
+```js
+console.log(person1.sayName == person2.sayName); // false
+```
+
+**然而，创建两个完成同样任务的`Function`实例的确没有必要；况且有`this`对象在，根本不用在执行代码前就把函数对象实例绑定到特定对象上面。**
+
+这个问题可以通过把函数定义转移到构造函数外部来解决：
+
+```js
+function Person(name, age, job){
+    this.name = name;
+    this.age = age;
+    this.job = job;
+    this.sayName = sayName;  // 在构造函数内部，将sayName属性设置成等于全局的sayName函数。
+}
+
+// 把sayName()函数的定义转移到了构造函数外部。
+function sayName() {
+    console.log(this.name);
+}
+
+let person1 = new Person("Nicholas", 29, "Software Engineer");
+let person2 = new Person("Greg", 27, "Doctor");
+person1.sayName(); // Nicholas
+person2.sayName(); // Greg
+
+// 由于sayName包含的是一个指向函数的指针，因此person1和person2对象就共享了在全局作用域中定义的同一个sayName()函数。
+console.log(person1.sayName == person2.sayName); // true
+```
+
+**但这种做法仍然有缺点：**
+
+- 在全局作用域中定义的函数实际上只能被某个对象调用，这让全局作用域有点名不副实。
+- 如果对象需要定义很多方法，那么就要定义很多个全局函数，于是我们这个自定义的引用类型就丝毫没有封装性可言了。
+
+**这些问题可以通过使用 *原型模式* 来解决。**
+
+
+
+### 8.2.4 原型模式 (The Prototype Pattern)
 
