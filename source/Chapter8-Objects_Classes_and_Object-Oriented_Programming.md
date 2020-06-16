@@ -631,3 +631,39 @@ console.log(Object.getPrototypeOf(person1) == Person.prototype); // true
 console.log(Object.getPrototypeOf(person1).name); // "Nicholas"
 ```
 
+The `Object` type also features a `setPrototypeOf()` method, which writes a new value into the `[[Prototype]]` of the instance. This allows you to overwrite the prototype hierarchy of an already instantiated object:
+
+```js
+let biped = {
+    numLegs: 2
+};
+
+let person = {
+    name: 'Matt'
+};
+
+Object.setPrototypeOf(person, biped);
+
+console.log(person.name); // Matt
+console.log(person.numLegs); // 2
+console.log(Object.getPrototypeOf(person) === biped); // true
+```
+
+> WARNING: The `Object.setPrototypeOf()` operation will likely cause severe performance slowdowns when used. 
+
+To avoid these slowdowns, prefer to just create a new object and specify its prototype with `Object.create()`:
+
+```js
+let biped = {
+    numLegs: 2
+};
+
+let person = Object.create(biped);
+person.name = 'Matt';
+
+console.log(person.name); // Matt
+console.log(person.numLegs); // 2
+console.log(Object.getPrototypeOf(person) === biped); // true
+```
+
+#### 理解原型的层次结构 (Understanding the Prototype Hierarchy)
