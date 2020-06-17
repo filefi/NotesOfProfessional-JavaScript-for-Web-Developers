@@ -667,3 +667,5 @@ console.log(Object.getPrototypeOf(person) === biped); // true
 ```
 
 #### 理解原型的层次结构 (Understanding the Prototype Hierarchy)
+
+每当读取某个对象的某个属性时，都会对指定名称的属性进行搜索。
