@@ -668,4 +668,14 @@ console.log(Object.getPrototypeOf(person) === biped); // true
 
 #### 理解原型的层次结构 (Understanding the Prototype Hierarchy)
 
-每当读取某个对象的某个属性时，都会对指定名称的属性进行搜索。
+**每当读取某个对象的某个属性时，都会对指定名称的属性进行搜索：**
+
+1. 首先搜索对象实例本身是否具有给定名字的属性。如果在实例中找到了具有给定名字的属性，则返回该属性的值。
+
+2. 如果实例本身不具有给定名字的属性，则继续搜索指针指向的原型对象，在原型对象中查找具有给定名字的属性。
+
+3. 如果在原型对象中找到了这个属性，则返回该属性的值。
+
+例如在我们调用`person1.sayName()`的时候，会先后执行2次搜索：
+
+![](_static/images/Chapter8-Objects_Classes_and_Object-Oriented_Programming.assets/Property_Search.png)
