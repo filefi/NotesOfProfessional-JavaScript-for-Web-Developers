@@ -679,3 +679,119 @@ console.log(Object.getPrototypeOf(person) === biped); // true
 例如在我们调用`person1.sayName()`的时候，会先后执行2次搜索：
 
 ![](_static/images/Chapter8-Objects_Classes_and_Object-Oriented_Programming.assets/Property_Search.png)
+
+虽然可以通过对象实例访问保存在原型中的值，但却 **不能通过对象实例重写原型中的值。** 当为对象实例添加一个属性时，这个属性就会**屏蔽**原型对象中保存的同名属性，但不会修改那个属性。即使将这个属性设置为`null`，也只会在实例中设置这个属性：
+
+```js
+function Person() {}
+
+Person.prototype.name = "Nicholas";
+Person.prototype.age = 29;
+Person.prototype.job = "Software Engineer";
+Person.prototype.sayName = function() {
+    console.log(this.name);
+};
+
+let person1 = new Person();
+let person2 = new Person();
+
+person1.name = "Greg";
+console.log(person1.name); // "Greg" - from instance
+console.log(person2.name); // "Nicholas" - from prototype
+```
+
+不过，使用`delete`操作符则可以完全删除实例属性，从而让我们能够重新访问原型中的属性：
+
+```js
+function Person() {}
+
+Person.prototype.name = "Nicholas";
+Person.prototype.age = 29;
+Person.prototype.job = "Software Engineer";
+Person.prototype.sayName = function() {
+    console.log(this.name);
+};
+
+let person1 = new Person();
+let person2 = new Person();
+
+person1.name = "Greg";
+console.log(person1.name); // "Greg" - from instance
+console.log(person2.name); // "Nicholas" - from prototype
+
+delete person1.name;
+console.log(person1.name); // "Nicholas" - from the prototype
+```
+
+使用`hasOwnProperty()`方法可以检测一个属性是存在于实例中，还是存在于原型中。这个方法（从`Object`继承）只在给定属性存在于对象实例中时，才会返回`true`：
+
+```js
+function Person() {}
+Person.prototype.name = "Nicholas";
+Person.prototype.age = 29;
+Person.prototype.job = "Software Engineer";
+Person.prototype.sayName = function() {
+    console.log(this.name);
+};
+
+let person1 = new Person();
+let person2 = new Person();
+
+console.log(person1.hasOwnProperty("name")); // false
+
+person1.name = "Greg";
+console.log(person1.name); // "Greg" - from instance
+console.log(person1.hasOwnProperty("name")); // true
+
+console.log(person2.name); // "Nicholas" - from prototype
+console.log(person2.hasOwnProperty("name")); // false
+
+delete person1.name;
+console.log(person1.name); // "Nicholas" - from the prototype
+console.log(person1.hasOwnProperty("name")); // false
+```
+
+下图展示了上面例子在不同情况下的实现与原型的关系（图中省略了与`Person`构造函数的关系）：
+
+![](_static/images/Chapter8-Objects_Classes_and_Object-Oriented_Programming.assets/09.d06z.02.png)
+
+#### 原型与`in`操作符
+
+有2种方式使用`in`操作符：
+
+- 单独使用
+- 在`for-in`循环中使用
+
+在单独使用时，`in`操作符会在通过对象能够访问给定属性时返回`true`，无论该属性存在于实例中还是原型中。
+
+```js
+function Person() {}
+
+Person.prototype.name = "Nicholas";
+Person.prototype.age = 29;
+Person.prototype.job = "Software Engineer";
+Person.prototype.sayName = function() {
+    console.log(this.name);
+};
+
+let person1 = new Person();
+let person2 = new Person();
+
+console.log(person1.hasOwnProperty("name")); // false
+console.log("name" in person1); // true
+
+person1.name = "Greg";
+console.log(person1.name); // "Greg" - from instance
+console.log(person1.hasOwnProperty("name")); // true
+console.log("name" in person1); // true
+
+console.log(person2.name); // "Nicholas" - from prototype
+console.log(person2.hasOwnProperty("name")); // false
+console.log("name" in person2); // true
+
+delete person1.name;
+console.log(person1.name); // "Nicholas" - from the prototype
+console.log(person1.hasOwnProperty("name")); // false
+console.log("name" in person1); // true
+```
+
