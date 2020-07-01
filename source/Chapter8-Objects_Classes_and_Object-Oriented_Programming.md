@@ -795,3 +795,308 @@ console.log(person1.hasOwnProperty("name")); // false
 console.log("name" in person1); // true
 ```
 
+同时使用`hasOwnProperty()`方法和`in`操作符，就可以确定该属性到底是存在于对象中，还是存在于原型中，如下所示：
+
+```js
+function hasPrototypeProperty(object, name){
+    return !object.hasOwnProperty(name) && (name in object);
+}
+```
+
+由于`in`操作符只要通过对象能够访问到属性就返回`true`，`hasOwnProperty()`只在属性存在于实例中时才返回`true`，因此只要`in`操作符返回`true`而`hasOwnProperty()`返回`false`，就可以确定属性是原型中的属性。
+
+```js
+function Person() {}
+
+Person.prototype.name = "Nicholas";
+Person.prototype.age = 29;
+Person.prototype.job = "Software Engineer";
+Person.prototype.sayName = function() {
+    console.log(this.name);
+};
+
+let person = new Person();
+console.log(hasPrototypeProperty(person, "name")); // true
+
+person.name = "Greg";
+console.log(hasPrototypeProperty(person, "name")); // false
+```
+
+
+
+在使用`for-in`循环时，返回的是所有能够通过对象访问的、可枚举的（enumerated）属性，其中既包括存在于实例中的属性，也包括存在于原型中的属性。屏蔽了原型中不可枚举属性（即将`[[Enumerable]]`标记为`false`属性）的实例属性也会在`for-in`循环中返回，因为根据规定，所有开发人员定义的属性都是可枚举的。
+
+```js
+function Person() {}
+
+Person.prototype.name = "Nicholas";
+Person.prototype.age = 29;
+Person.prototype.job = "Software Engineer";
+Person.prototype.sayName = function() {
+    console.log(this.name);
+};
+
+for(const i in new Person()){
+    console.log(i);
+}
+// name
+// age
+// job
+// sayName
+```
+
+要取得对象上所有可枚举的实例属性，可以使用`Object.keys()`方法。这个方法接收一个对象作为参数，返回一个包含所有可枚举属性的字符串数组。这个字符串数组的顺序也是它们在`for-in`循环中出现的顺序。例如：
+
+```js
+function Person() {}
+
+Person.prototype.name = "Nicholas";
+Person.prototype.age = 29;
+Person.prototype.job = "Software Engineer";
+Person.prototype.sayName = function() {
+    console.log(this.name);
+};
+
+let keys = Object.keys(Person.prototype);
+console.log(keys); // ["name,age,job,sayName"]
+
+let p1 = new Person();
+p1.name = "Rob";
+p1.age = 31;
+let p1keys = Object.keys(p1);
+console.log(p1keys); // ["name,age"]
+```
+
+如果你想要得到所有实例属性，无论它是否可枚举，可以使用`Object.getOwnPropertyNames()`方法。
+
+```js
+let keys = Object.getOwnPropertyNames(Person.prototype);
+console.log(keys); // ["constructor", "name", "age", "job", "sayName"]
+```
+
+With the introduction of symbols in ECMAScript 6, the need for a sibling method to `Object.getOwnPropertyNames()` became apparent because symbol-keyed properties do not have a concept of a name. Therefore, `Object.getOwnPropertySymbols()` was introduced, which offers the same behavior as `Object.getOwnPropertyNames()` but with respect to symbols:
+
+```js
+let k1 = Symbol('k1'),
+    k2 = Symbol('k2');
+
+let o = {
+    [k1]: 'k1',
+    [k2]: 'k2'
+};
+
+console.log(Object.getOwnPropertySymbols(o));
+// [Symbol(k1), Symbol(k2)]
+```
+
+#### Property Enumeration Order
+
+for-in loops, `Object.keys()`, `Object.getOwnPropertyNames`, `Object.getOwnPropertySymbols()`, and `Object.assign()` have an important distinction when it comes to property enumeration order. for-in loops and `Object.keys()` do not have a deterministic order of enumeration—these are determined by the JavaScript engine and may vary by browser.
+`Object.getOwnPropertyNames()`, `Object.getOwnPropertySymbols()`, and `Object.assign()`, however, do have a deterministic enumeration order. Number keys will first be enumerated in ascending order, then string and symbol keys enumerated in insertion order. Keys defined inline in an object literal will be inserted in their comma delimited order.
+
+### 8.2.5 Object Iteration
+
+For most of JavaScript history, iterating the properties of an object was a messy affair. The ECMAScript 2017 introduced two static methods for converting an object’s contents into a serialized—and more importantly, iterable—format. These static methods, `Object.values()` and `Object.entries()`, accept and object and return its contents in an array. `Object.values()` returns an array of the object’s values, and `Object.entries()` returns an array of array pairs, each representing a `[key, value]` pair in the object.
+
+These methods are demonstrated here:
+
+```js
+const o = {
+    foo: 'bar',
+    baz: 1,
+    qux: {}
+};
+console.log(Object.values(o));
+// ["bar", 1, {}]
+console.log(Object.entries((o)));
+// [["foo", "bar"], ["baz", 1], ["qux", {}]]
+```
+
+Note that non-string properties are converted to strings in the output array. Furthermore, the method performs a shallow copy of the object:
+
+```js
+const o = {
+    qux: {}
+};
+console.log(Object.values(o)[0] === o.qux);
+// true
+console.log(Object.entries(o)[0][1] === o.qux);
+// true
+```
+
+Symbol-keyed properties are ignored:
+
+```js
+const sym = Symbol();
+const o = {
+    [sym]: 'foo'
+};
+console.log(Object.values(o));
+// []
+console.log(Object.entries((o)));
+// []
+```
+
+#### 替代的原型语法
+
+为减少不必要的输入，也为了从视觉上更好地封装原型的功能，更常见的做法是用一个包含所有属性和方法的对象字面量来重写整个原型对象，如下面的例子所示：
+
+```js
+function Person() {}
+
+Person.prototype = {
+    name: "Nicholas",
+    age: 29,
+    job: "Software Engineer",
+    sayName() {
+        console.log(this.name);
+    }
+};
+```
+
+在上面的代码中，我们将`Person.prototype`设置为等于一个以对象字面量形式创建的新对象。最终结果相同，但有一个例外：**`constructor`属性不再指向`Person`了。**前面曾经介绍过，每创建一个函数，就会同时创建它的`prototype`对象，这个对象也会自动获得`constructor`属性。而我们在这里使用的语法，本质上完全重写了默认的`prototype`对象，因此`constructor`属性也就变成了新对象的`constructor`属性（指向`Object`构造函数），不再指向`Person`函数。此时，尽管`instanceof`操作符还能返回正确的结果，但通过`constructor`已经无法确定对象的类型了，如下所示。
+
+```js
+let friend = new Person();
+
+console.log(friend instanceof Object); // true
+console.log(friend instanceof Person); // true
+console.log(friend.constructor == Person); // false
+console.log(friend.constructor == Object); // true
+```
+
+如果`constructor`的值真的很重要，可以像下面这样特意将它设置回适当的值。
+
+```js
+function Person() {}
+
+Person.prototype = {
+    constructor: Person,
+    name: "Nicholas",
+    age: 29,
+    job: "Software Engineer",
+    sayName() {
+        console.log(this.name);
+    }
+};
+```
+
+注意，以这种方式重设`constructor`属性会导致它的`[[Enumerable]]`特性被设置为true。默认情况下，原生的`constructor`属性是不可枚举的，因此如果你使用兼容ECMAScript 5的JavaScript引擎，可以试一试`Object.defineProperty()`。
+
+```js
+function Person() {}
+
+Person.prototype = {
+    name: "Nicholas",
+    age: 29,
+    job: "Software Engineer",
+    sayName() {
+        console.log(this.name);
+    }
+};
+
+// restore the constructor
+Object.defineProperty(Person.prototype, "constructor", {
+    enumerable: false,
+    value: Person
+});
+```
+
+#### 原型的动态性
+
+**由于在原型中查找值的过程是一次搜索，因此我们对原型对象所做的任何修改都能够立即从实例上反映出来，即使是先创建了实例后修改原型也照样如此。**
+
+```js
+let friend = new Person();
+Person.prototype.sayHi = function() {
+    console.log("hi");
+};
+friend.sayHi(); // "hi"
+```
+
+**尽管可以随时为原型添加属性和方法，并且修改能够立即在所有对象实例中反映出来，但如果是重写整个原型对象，那么情况就不一样了。** 我们知道，调用构造函数时会为实例添加一个指向最初原型的`[[Prototype]]`指针，而把原型修改为另外一个对象就等于切断了构造函数与最初原型之间的联系。 **请记住：实例中的指针仅指向原型，而不指向构造函数。** 看下面的例子。
+
+```js
+function Person() {}
+
+let friend = new Person();
+
+Person.prototype = {
+    constructor: Person,
+    name: "Nicholas",
+    age: 29,
+    job: "Software Engineer",
+    sayName() {
+        console.log(this.name);
+    }
+};
+
+friend.sayName(); // error
+```
+
+在这个例子中，我们先创建了`Person`的一个实例，然后又重写了其原型对象。然后在调用`friend.sayName()`时发生了错误，因为`friend`指向的原型中不包含以该名字命名的属性。下图展示了这个过程：
+
+![](_static/images/Chapter8-Objects_Classes_and_Object-Oriented_Programming.assets/09.d06z.03.png)
+
+**可以看出，重写原型对象切断了现有原型与任何之前已经存在的对象实例之间的联系；它们引用的仍然是最初的原型。**
+
+#### 原生对象的原型
+
+原型模式的重要性不仅体现在创建自定义类型方面，就连 **所有原生的引用类型，都是采用原型模式创建的。** 所有原生引用类型（`Object`、`Array`、`String`，等等）都在其构造函数的原型上定义了方法。例如，在`Array.prototype`中可以找到`sort()`方法，而在`String.prototype`中可以找到`substring()`方法。
+
+```js
+console.log(typeof Array.prototype.sort); // "function"
+console.log(typeof String.prototype.substring); // "function"
+```
+
+通过原生对象的原型，不仅可以取得所有默认方法的引用，而且也可以定义新方法。 **可以像修改自定义对象的原型一样修改原生对象的原型，因此可以随时添加方法。** 
+
+```js
+// 下面的代码就给基本包装类型String添加了一个名为startsWith()的方法。
+String.prototype.startsWith = function (text) {
+    return this.indexOf(text) === 0;
+};
+
+let msg = "Hello world!";
+console.log(msg.startsWith("Hello")); // true
+```
+
+> 尽管可以这样做，但我们不推荐在产品化的程序中修改原生对象的原型。
+
+#### 原型对象的问题
+
+原型对象的问题：
+
+- 它省略了为构造函数传递初始化参数这一环节，结果所有实例在默认情况下都将取得相同的属性值。
+- 原型模式的最大问题是，原型中所有属性是被很多实例共享的，而任何一个共享这些属性的实例都能够修改这些属性。对于包含引用类型值的属性来说，这一问题尤其突出。
+
+```js
+function Person() {}
+
+Person.prototype = {
+    constructor: Person,
+    name: "Nicholas",
+    age: 29,
+    job: "Software Engineer",
+    friends: ["Shelby", "Court"],
+    sayName() {
+        console.log(this.name);
+    }
+};
+
+let person1 = new Person();
+let person2 = new Person();
+
+// 向数组中添加了一个字符串
+person1.friends.push("Van");
+
+// 导致Person.prototype的friends属性被修改
+console.log(person1.friends); // "Shelby,Court,Van"
+console.log(person2.friends); // "Shelby,Court,Van"
+console.log(person1.friends === person2.friends); // true
+```
+
+由于这2个问题的存在，我们通常 **组合使用构造函数模式与原型模式** 。
+
+## 8.3 继承
+
