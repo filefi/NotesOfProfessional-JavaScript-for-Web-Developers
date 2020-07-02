@@ -1098,5 +1098,128 @@ console.log(person1.friends === person2.friends); // true
 
 由于这2个问题的存在，我们通常 **组合使用构造函数模式与原型模式** 。
 
+### 8.2.6 组合使用构造函数模式和原型模式
+
+**组合使用构造函数模式与原型模式，是目前在ECMAScript中使用最广泛、认同度最高的一种创建自定义类型的方法。可以说，在ES6引入关键字`class`之前，这是用来定义引用类型的一种默认模式。**
+
+构造函数模式用于定义实例属性，而原型模式用于定义方法和共享的属性。这样，每个实例都会有自己的一份实例属性的副本，但同时又共享着对方法的引用，最大限度地节省了内存，还支持向构造函数传递参数。
+
+```js
+function Person(name, age, job){
+    this.name = name;
+    this.age = age;
+    this.job = job;
+    this.friends = ["Shelby", "Court"];
+}
+
+Person.prototype = {
+    constructor : Person,
+    sayName : function(){
+        alert(this.name);
+    }
+}
+
+let person1 = new Person("Nicholas", 29, "Software Engineer");
+let person2 = new Person("Greg", 27, "Doctor");
+
+person1.friends.push("Van");
+console.log(person1.friends);    //["Shelby,Court,Van"]
+console.log(person2.friends);    //["Shelby,Court"]
+console.log(person1.friends === person2.friends);    //false
+console.log(person1.sayName === person2.sayName);    //true
+```
+
+### 8.2.7 动态原型模式
+
+**动态原型模式** 把所有信息都封装在了构造函数中，而通过在构造函数中初始化原型（仅在必要的情况下），又保持了同时使用构造函数和原型的优点。换句话说，可以通过检查某个应该存在的方法是否有效，来决定是否需要初始化原型。
+
+```js
+function Person(name, age, job){
+    //属性
+    this.name = name;
+    this.age = age;
+    this.job = job;
+
+    //方法
+    if (typeof this.sayName != "function"){
+
+        Person.prototype.sayName = function(){
+            alert(this.name);
+        };
+
+    }
+}
+
+let friend = new Person("Nicholas", 29, "Software Engineer");
+friend.sayName();
+```
+
+### 8.2.8 寄生构造函数模式
+
+通常，在前述的几种模式都不适用的情况下，可以使用 **寄生（parasitic）构造函数模式** 。这种模式的基本思想是创建一个函数，该函数的作用仅仅是封装创建对象的代码，然后再返回新创建的对象；但从表面上看，这个函数又很像是典型的构造函数。
+
+缺点：寄生构造函数模式不能依赖`instanceof`操作符来确定对象类型。
+
+```js
+function Person(name, age, job){
+    var o = new Object();
+    o.name = name;
+    o.age = age;
+    o.job = job;
+    o.sayName = function(){
+        alert(this.name);
+    };    
+    return o;
+}
+
+var friend = new Person("Nicholas", 29, "Software Engineer");
+friend.sayName();  //"Nicholas"
+```
+
+> **建议在可以使用其他模式的情况下，不要使用这种模式。**
+
+### 8.2.9 稳妥构造函数模式
+
+所谓 **稳妥对象**（durable objects），指的是没有公共属性，而且其方法也不引用`this`的对象。
+
+稳妥对象最适合在一些安全的环境中（这些环境中会禁止使用`this`和`new`），或者在防止数据被其他应用程序（如Mashup程序）改动时使用。
+
+**稳妥构造函数遵循** 与 **寄生构造函数** 类似的模式，但有2点不同：
+
+- 新创建对象的实例方法不引用`this`；
+- 不使用`new`操作符调用构造函数。
+
+按照稳妥构造函数的要求，可以将前面的`Person`构造函数重写如下。
+
+```js
+function Person(name, age, job){
+    //创建要返回的对象
+    var o = new Object();
+
+    //可以在这里定义私有变量和函数
+
+    //添加方法
+    o.sayName = function(){
+        alert(name);
+    };    
+
+    //返回对象
+    return o;
+}
+```
+
+注意，在以这种模式创建的对象中，除了使用`sayName()`方法之外，没有其他办法访问`name`的值。可以像下面使用稳妥的`Person`构造函数。
+
+```js
+let friend = Person("Nicholas", 29, "Software Engineer");
+friend.sayName();  //"Nicholas"
+```
+
+> 与寄生构造函数模式类似，使用稳妥构造函数模式创建的对象与构造函数之间也没有什么关系，因此`instanceof`操作符对这种对象也没有意义。
+
+
+
 ## 8.3 继承
+
+### 8.3.1 原型链
 
