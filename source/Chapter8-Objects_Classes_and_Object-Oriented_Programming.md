@@ -1223,3 +1223,225 @@ friend.sayName();  //"Nicholas"
 
 ### 8.3.1 原型链
 
+ECMAScript中描述了**原型链**的概念，并将原型链作为实现继承的主要方法。
+
+原型链的基本概念：我们让原型对象等于另一个类型的实例，此时的原型对象将包含一个指向另一个原型的指针，相应地，另一个原型中也包含着一个指向另一个构造函数的指针。假如另一个原型又是另一个类型的实例，那么上述关系依然成立，如此层层递进，就构成了实例与原型的链条。
+
+```js
+function SuperType() {
+    this.property = true;
+}
+
+SuperType.prototype.getSuperValue = function() {
+    return this.property;
+};
+
+function SubType() {
+    this.subproperty = false;
+}
+
+// inherit from SuperType
+SubType.prototype = new SuperType();
+
+SubType.prototype.getSubValue = function () {
+    return this.subproperty;
+};
+
+let instance = new SubType();
+console.log(instance.getSuperValue()); // true
+```
+
+`SuperType`和`SubType`分别有一个属性和一个方法。`SubType`继承了`SuperType`，而继承是通过创建`SuperType`的实例，并将该实例赋给`SubType.prototype`实现的。实现的本质是重写原型对象，代之以一个新类型的实例。换句话说，原来存在于`SuperType`的实例中的所有属性和方法，现在也存在于`SubType.prototype`中了。在确立了继承关系之后，我们给`SubType.prototype`添加了一个方法，这样就在继承了`SuperType`的属性和方法的基础上又添加了一个新方法。
+
+这个例子中的实例以及构造函数和原型之间的关系如图所示：
+
+![](_static/images/Chapter8-Objects_Classes_and_Object-Oriented_Programming.assets/09.d06z.05.png)
+
+> **注意`instance.constructor`现在指向的是`SuperType`！因为`SubType`的原型指向了另一个对象——`SuperType`的原型，而这个原型对象的`constructor`属性指向的是`SuperType`。**
+
+当以读取模式访问一个实例属性时，首先会在实例中搜索该属性。如果没有找到该属性，则会继续搜索实例的原型。在通过原型链实现继承的情况下，搜索过程就得以沿着原型链继续向上。就拿上面的例子来说，调用`instance.getSuperValue()`会经历三个搜索步骤：1）搜索实例；2）搜索`SubType.prototype`；3）搜索`SuperType.prototype`，最后一步才会找到该方法。
+
+#### 默认原型
+
+**所有引用类型默认都继承了`Object`，而这个继承也是通过原型链实现的。大家要记住，所有函数的默认原型都是`Object`的实例，因此默认原型都会包含一个内部指针，指向`Object.prototype`。** 也就是说，`SubType`继承了`SuperType`，而`SuperType`继承了`Object`。
+
+#### 原型和实例的关系
+
+可以通过2种方式来确定原型和实例之间的关系：
+
+- 使用`instanceof`操作符
+- 使用`isPrototypeOf()`方法
+
+使用`instanceof`操作符：
+
+```js
+// 由于原型链的关系，我们可以说instance是Object、SuperType或SubType中任何一个类型的实例。
+console.log(instance instanceof Object); // true
+console.log(instance instanceof SuperType); // true
+console.log(instance instanceof SubType); // true
+```
+
+使用`isPrototypeOf()`方法：
+
+```js
+// 只要是原型链中出现过的原型，都可以说是该原型链所派生的实例的原型, 因此isPrototypeOf()方法也会返回true
+console.log(Object.prototype.isPrototypeOf(instance)); // true
+console.log(SuperType.prototype.isPrototypeOf(instance)); // true
+console.log(SubType.prototype.isPrototypeOf(instance)); // true
+```
+
+#### 谨慎地定义方法
+
+子类型有时候需要覆盖超类型中的某个方法，或者需要添加超类型中不存在的某个方法。但不管怎样， **给原型添加方法的代码一定要放在替换原型的语句之后。**
+
+```js
+function SuperType() {
+    this.property = true;
+}
+
+SuperType.prototype.getSuperValue = function() {
+    return this.property;
+};
+
+function SubType() {
+    this.subproperty = false;
+}
+
+// inherit from SuperType
+SubType.prototype = new SuperType();
+
+// new method
+SubType.prototype.getSubValue = function () {
+    return this.subproperty;
+};
+// override existing method
+SubType.prototype.getSuperValue = function () {
+    return false;
+};
+
+let instance = new SubType();
+console.log(instance.getSuperValue()); // false
+```
+
+**需要注意的是，在通过原型链实现继承时，不能使用对象字面量创建原型方法。因为这样做就会重写原型链：**
+
+```js
+function SuperType() {
+    this.property = true;
+}
+
+SuperType.prototype.getSuperValue = function() {
+    return this.property;
+};
+
+function SubType() {
+    this.subproperty = false;
+}
+
+// inherit from SuperType
+SubType.prototype = new SuperType();
+
+// 使用字面量添加新方法，而非SuperType的实例，因此SubType和SuperType之间的原型链已经被切断
+SubType.prototype = {
+    getSubValue() {
+        return this.subproperty;
+    },
+    someOtherMethod() {
+        return false;
+    }
+};
+
+let instance = new SubType();
+console.log(instance.getSuperValue()); // error!
+```
+
+#### 原型链的问题
+
+原型链的问题：
+
+- 包含引用类型值的原型属性会被所有实例共享；
+- 在创建子类型的实例时，不能向超类型的构造函数中传递参数。因为没有办法在不影响所有对象实例的情况下，给超类型的构造函数传递参数。
+
+**有鉴于此，实践中很少会单独使用原型链！**
+
+```js
+function SuperType() {
+    this.colors = ["red", "blue", "green"];
+}
+
+function SubType() {}
+
+// inherit from SuperType
+SubType.prototype = new SuperType();  //SubType的所有实例都会共享colors属性
+
+let instance1 = new SubType();
+instance1.colors.push("black");
+console.log(instance1.colors); // "red,blue,green,black"
+
+let instance2 = new SubType();
+console.log(instance2.colors); // "red,blue,green,black"
+// 对instance1.colors的修改能够通过instance2.colors反映出来
+```
+
+
+
+### 8.3.2 构造函数借用 (Constructor Stealing)
+
+在解决原型中包含引用类型值所带来问题的过程中，开发人员开始使用一种叫做**构造函数借用**（constructor stealing）的技术（有时候也叫做伪造对象或经典继承）。
+
+这种技术的基本思想是，在子类型构造函数的内部调用超类型构造函数。因为函数只不过是在特定环境中执行代码的对象，所以通过使用`apply()`和`call()`方法也可以在（将来）新创建的对象上执行构造函数。
+
+```js
+function SuperType() {
+    this.colors = ["red", "blue", "green"];
+}
+
+function SubType() {
+    // inherit from SuperType
+    SuperType.call(this); // 使用apply()方法也可以
+}
+
+let instance1 = new SubType();
+instance1.colors.push("black");
+console.log(instance1.colors); // "red,blue,green,black"
+
+let instance2 = new SubType();
+console.log(instance2.colors); // "red,blue,green"
+```
+
+#### 传递参数
+
+相对于原型链而言，借用构造函数有一个很大的优势，即可以在子类型构造函数中向超类型构造函数传递参数。
+
+```js
+function SuperType(name){
+    this.name = name;
+}
+
+function SubType() {
+    // inherit from SuperType passing in an argument
+    SuperType.call(this, "Nicholas");
+    
+    // 为确保SuperType构造函数不会重写子类型的属性，在调用超类型构造函数后，再添加子类型中定义的属性
+    // instance property
+    this.age = 29;
+}
+
+let instance = new SubType();
+console.log(instance.name); // "Nicholas";
+console.log(instance.age); // 29
+```
+
+#### 构造函数借用的问题
+
+构造函数借用的问题：
+
+- 如果仅仅是借用构造函数，那么也将无法避免构造函数模式存在的问题——方法都在构造函数中定义，因此函数无法复用。
+- 在超类型的原型中定义的方法，对子类型而言也是不可见的，结果所有类型都只能使用构造函数模式。
+
+**考虑到这些问题，构造函数借用也是很少单独使用的！**
+
+
+
+### 8.3.3 组合继承
+
