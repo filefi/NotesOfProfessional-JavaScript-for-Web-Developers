@@ -1140,6 +1140,54 @@ function assignHandler() {
 
 ## 10.15 立即调用的函数表达式 (IMMEDIATELY INVOKED FUNCTION EXPRESSIONS, IIFE)
 
+被直接调用的匿名函数通常称为立即调用函数表达式（immediately invoked function expression, IIFE）。
+
+JavaScript将`function`关键字当作一个函数声明的开始，而函数声明后面不能跟圆括号。然而，函数**表达式**的后面可以跟圆括号。要将函数声明转换成函数表达式，只要像下面这样给它加上一对圆括号即可。
+
+```js
+(function() {
+    // block code here
+})();
+```
+
+可以使用IIFE模拟块级作用域：
+
+```js
+// IIFE
+(function () {
+    for (var i = 0; i < count; i++) {
+        console.log(i);
+    }
+})();
+
+console.log(i); // Throws an error
+```
+
+With ECMAScript 6, the IIFE is no longer required for emulating block scope, as block scoped variables will offer the exact same behavior without the need for an IIFE (shown here in two different ways):
+
+```js
+// Inline block scope
+{
+    let i;
+    for (i = 0; i < count; i++) {
+        console.log(i);
+    }
+}
+
+console.log(i); // Throws an error
+```
+
+```js
+// Function block scope
+for (let i = 0; i < count; i++) {
+    console.log(i);
+}
+
+console.log(i); // Throws an error
+```
+
+
+
 ## 10.16 私有变量
 
 任何在函数中定义的变量，都可以认为是私有变量，因为不能在函数的外部访问这些变量。私有变量包括：
@@ -1204,7 +1252,7 @@ console.log(person.getName()); // 'Greg'
     }
     
     // constructor
-    MyObject = function() {};
+    MyObject = function() {}; // 注意MyObject是一个全局变量
     
     // public and privileged methods
     MyObject.prototype.publicMethod = function() {
@@ -1253,9 +1301,64 @@ console.log(person2.getName()); // 'Michael'
 
 ### 10.16.2 模块模式
 
+前面的模式是用于为自定义类型创建私有变量和特权方法的。而模块模式（module pattern）则是为单例创建私有变量和特权方法。所谓单例（singleton），指的就是只有一个实例的对象。按照惯例，JavaScript是以对象字面量的方式来创建单例对象的。
 
+```js
+let singleton = {
+    name: value,
+    method() {
+        // method code here
+    }
+};
+```
+
+模块模式通过为单例添加私有变量和特权方法能够使其得到增强，其语法形式如下：
+
+```js
+let singleton = function() {
+    // private variables and functions
+    let privateVariable = 10;
+    function privateFunction() {
+        return false;
+    }
+    
+    // privileged/public methods and properties
+    return {
+        publicProperty: true,
+        publicMethod() {
+            privateVariable++;
+            return privateFunction();
+    	}
+    };
+}();
+```
+
+简言之，如果必须创建一个对象并以某些数据对其进行初始化，同时还要公开一些能够访问这些私有数据的方法，那么就可以使用**模块模式**。
 
 ### 10.16.3 增强的模块模式
 
+在返回对象之前加入对其增强的代码，这种增强的模块模式适合那些单例必须是某种类型的实例，同时还必须添加某些属性和（或）方法对其加以增强的情况。
 
+```js
+let singleton = function() {
+    // private variables and functions
+    let privateVariable = 10;
+    function privateFunction() {
+        return false;
+    }
+    
+    // create object
+    let object = new CustomType();
+    
+    // add privileged/public properties and methods
+    object.publicProperty = true;
+    object.publicMethod = function() {
+        privateVariable++;
+        return privateFunction();
+    };
+    
+    // return the object
+    return object;
+}();
+```
 
