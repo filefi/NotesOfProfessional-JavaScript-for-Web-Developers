@@ -1140,7 +1140,7 @@ function assignHandler() {
 
 ## 10.15 立即调用的函数表达式 (IMMEDIATELY INVOKED FUNCTION EXPRESSIONS, IIFE)
 
-被直接调用的匿名函数通常称为立即调用函数表达式（immediately invoked function expression, IIFE）。
+被立即调用的匿名函数通常称为立即调用函数表达式（immediately invoked function expression, IIFE）。
 
 JavaScript将`function`关键字当作一个函数声明的开始，而函数声明后面不能跟圆括号。然而，函数**表达式**的后面可以跟圆括号。要将函数声明转换成函数表达式，只要像下面这样给它加上一对圆括号即可。
 
