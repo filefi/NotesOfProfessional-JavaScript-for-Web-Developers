@@ -297,3 +297,240 @@ let timeoutId = setTimeout(() => alert("Hello world!"), 1000);
 clearTimeout(timeoutId);
 ```
 
+`setInterval()`会按照指定的时间间隔重复执行代码，直至间歇调用被取消或者页面被卸载。它接受的参数与`setTimeout()`相同：要执行的代码（字符串或函数）和每次执行之前需要等待的毫秒数。
+
+```js
+setInterval(() => alert("Hello world!"), 10000);
+```
+
+调用`setInterval()`方法同样也会返回一个间歇调用ID，该ID可用于在将来某个时刻使用`clearInterval()`方法取消间歇调用。
+
+```js
+let num = 0, intervalId = null;
+let max = 10;
+let incrementNumber = function() {
+    num++;
+    // if the max has been reached, cancel all pending executions
+    if (num == max) {
+        clearInterval(intervalId);
+        alert("Done");
+    }
+}
+intervalId = setInterval(incrementNumber, 500);
+```
+
+这个模式也可以使用超时调用来实现：
+
+```js
+let num = 0;
+let max = 10;
+let incrementNumber = function() {
+    num++;
+    //if the max has not been reached, set another timeout
+    if (num < max) {
+        setTimeout(incrementNumber, 500);
+    } else {
+        alert("Done");
+    }
+}
+setTimeout(incrementNumber, 500);
+```
+
+**在开发环境下，很少使用真正的间歇调用，原因是后一个间歇调用可能会在前一个间歇调用结束之前启动。而像前面示例中那样使用超时调用，则完全可以避免这一点。所以，最好不要使用间歇调用。**
+
+### 12.1.8 系统对话框
+
+浏览器通过`alert()`、`confirm()`和`prompt()`方法可以调用系统对话框向用户显示消息。这3个方法打开的对话框都是**同步**和模态的。也就是说，显示这些对话框的时候代码会停止执行，而关掉这些对话框后代码又会恢复执行。
+
+- `alert()`方法：这个方法接受一个字符串并将其显示给用户；
+- `confirm()`方法：返回布尔值，`true`表示单击了OK，`false`表示单击了Cancel或单击了右上角的X按钮；
+- `prompt()`方法：返回文本输入域的值；如果用户单击了Cancel或没有单击OK而是通过其他方式关闭了对话框，则该方法返回`null`。
+
+```js
+alert("Hello world!")
+```
+
+```js
+if (confirm("Are you sure?")) {
+    alert("I'm so glad you're sure!");
+} else {
+    alert("I'm sorry to hear you're not sure.");
+}
+```
+
+```js
+let result = prompt("What is your name? ", "");
+if (result !== null) {
+    alert("Welcome, " + result);
+}
+```
+
+还有两个可以通过JavaScript打开的对话框，即“查找”和“打印”。这两个对话框都是**异步**显示的，能够将控制权立即交还给脚本。这两个对话框与用户通过浏览器菜单的“查找”和“打印”命令打开的对话框相同。在JavaScript中则可以像下面这样通过`window`对象的`find()`和`print()`方法打开它们。
+
+```js
+//显示“打印”对话框
+window.print();
+
+//显示“查找”对话框
+window.find();
+```
+
+## 12.2 `location`对象
+
+`location`是最有用的BOM对象之一，它提供了与当前窗口中加载的文档有关的信息，还提供了一些导航功能。
+
+`location`对象既是`window`对象的属性，也是`document`对象的属性，即`window.location`和`document.location`引用的是同一个对象。
+
+下表列出了`location`对象的所有属性：
+
+| 属　性　名          | 例　　子                | 说　　明                                                     |
+| :------------------ | :---------------------- | :----------------------------------------------------------- |
+| `location.hash`     | `"#contents"`           | 返回URL中的`hash`（#号后跟零或多个字符），如果URL中不包含散列，则返回空字符串 |
+| `location.host`     | `"www.wrox.com:80"`     | 返回服务器名称和端口号（如果有）                             |
+| `location.hostname` | `"www.wrox.com"`        | 返回不带端口号的服务器名称                                   |
+| `location.href`     | `"http://www.wrox.com"` | 返回当前加载页面的完整URL。而`location`对象的`toString()`方法也返回这个值 |
+| `location.pathname` | `"/WileyCDA/"`          | 返回URL中的目录和（或）文件名                                |
+| `location.port`     | `"8080"`                | 返回URL中指定的端口号。如果URL中不包含端口号，则这个属性返回空字符串 |
+| `location.protocol` | `"http:"`               | 返回页面使用的协议。通常是`http:`或`https:`                  |
+| `location.search`   | `"?q=javascript"`       | 返回URL的查询字符串。这个字符串以问号开头                    |
+| `location.username` | `"foouser"` | The username specified before the domain name. |
+| `location.password` | `"barpassword"` | The password specified before the domain name. |
+| `location.origin`  | `"http:// www.wrox.com"` | The origin of the URL. Read only. |
+
+### 12.2.1 查询字符串参数
+
+访问`location`对象中URL包含的查询字符串的属性并不方便。为此，可以像下面这样创建一个函数，用以解析查询字符串，然后返回包含所有参数的一个对象：
+
+```js
+let getQueryStringArgs = function() {
+    // get query string without the initial '?'
+    let qs = (location.search.length > 0 ? location.search.substring(1) : ""),
+    // object to hold data
+    args = {};
+    // assign each item onto the args object
+    for (let item of qs.split("&").map(kv => kv.split("="))) {
+        let name = decodeURIComponent(item[0]),
+        value = decodeURIComponent(item[1]);
+        if (name.length) {
+            args[name] = value;
+        }
+    }
+    return args;
+}
+
+// assume query string of ?q=javascript&num=10
+let args = getQueryStringArgs();
+alert(args["q"]); // "javascript"
+alert(args["num"]); // "10"
+```
+
+#### URLSearchParams
+
+`URLSearchParams` offers a collection of utility methods which allow you to inspect and modify query parameters using a standardized API. A `URLSearchParams` instance is created by passing a query string to the constructor. The instance exposes various methods like `get()`, `set()`, and `delete()` to perform query string operations. These are demonstrated here:
+
+```js
+let qs = "?q=javascript&num=10";
+let searchParams = new URLSearchParams(qs);
+
+alert(searchParams.toString()); // " q=javascript&num=10"
+searchParams.has("num"); // true
+searchParams.get("num"); // 10
+
+searchParams.set("page", "3");
+alert(searchParams.toString()); // " q=javascript&num=10&page=3"
+
+searchParams.delete("q");
+alert(searchParams.toString()); // " num=10&page=3"
+```
+
+Most browsers that support `URLSearchParams` also support using the `URLSearchParams` as an iterable object:
+
+```js
+let qs = "?q=javascript&num=10";
+let searchParams = new URLSearchParams(qs);
+for (let param of searchParams) {
+    console.log(param);
+}
+// ["q", "javascript"]
+// ["num", "10"]
+```
+
+### 12.2.2 操作`location`
+
+使用`assign()`方法并为其传递一个URL，就会立即打开新URL并在浏览器的历史记录中生成一条记录：
+
+```js
+location.assign("http://www.wrox.com");
+```
+
+将`location.href`或`window.location`设置为一个URL值，也会以该值调用`assign()`方法：
+
+```js
+// 下列两行代码与显式调用assign()方法的效果完全一样
+window.location = "http://www.wrox.com";
+location.href = "http://www.wrox.com";
+```
+
+修改`location`对象的其他属性（`hash`除外）也可以改变当前加载的页面：
+
+```js
+// assume starting at http://www.wrox.com/WileyCDA/
+// changes URL to "http://www.wrox.com/WileyCDA/#section1"
+location.hash = "#section1";
+
+// changes URL to "http://www.wrox.com/WileyCDA/?q=javascript"
+location.search = "?q=javascript";
+
+// changes URL to "http://www.yahoo.com/WileyCDA/"
+location.hostname = "www.yahoo.com";
+
+// changes URL to "http://www.yahoo.com/mydir/"
+location.pathname = "mydir";
+
+// changes URL to "http://www.yahoo.com:8080/WileyCDA/
+Location.port = 8080;
+```
+
+当通过上述任何一种方式修改URL之后，浏览器的历史记录中就会生成一条新记录，因此用户通过单击“后退”按钮都会导航到前一个页面。使用`replace()`方法虽然会导致浏览器位置改变，但不会在历史记录中生成新记录。在调用`replace()`方法之后，用户不能回到前一个页面：
+
+```js
+location.replace("http://www.wrox.com/")
+```
+
+`reload()`方法的作用是重新加载当前显示的页面。如果页面自上次请求以来并没有改变过，页面就会从浏览器缓存中重新加载。如果要强制从服务器重新加载，则需要像下面这样为该方法传递参数`true`。
+
+```js
+location.reload();        //重新加载（有可能从缓存中加载）
+location.reload(true);    //重新加载（从服务器重新加载）
+```
+
+
+
+## 12.3　`navigator`对象
+
+### 12.3.1 检测插件
+
+检测浏览器中是否安装了特定的插件是一种最常见的检测例程。对于非IE浏览器，可以使用`plugins`数组来达到这个目的。该数组中的每一项都包含下列属性：
+
+- `name`：插件的名字。
+- `description`：插件的描述。
+- `filename`：插件的文件名。
+- `length`：插件所处理的MIME类型数量。
+
+```js
+// plugin detection - doesn't work in Internet Explorer 10 or below
+let hasPlugin = function(name) {
+    name = name.toLowerCase();
+    for (let plugin of window.navigator.plugins){
+        if (plugin.name.toLowerCase().indexOf(name) > -1){
+            return true;
+        }
+    }
+    return false;
+}
+// detect flash
+alert(hasPlugin("Flash"));
+// detect quicktime
+alert(hasPlugin("QuickTime"));
+```
+
