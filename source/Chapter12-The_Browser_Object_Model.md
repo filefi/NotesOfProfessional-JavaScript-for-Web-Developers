@@ -506,7 +506,9 @@ location.reload(true);    //重新加载（从服务器重新加载）
 
 
 
-## 12.3　`navigator`对象
+## 12.3 `navigator`对象
+
+`navigator`对象现在已经成为识别客户端浏览器的标准。与其他BOM对象的情况一样，每个浏览器中的`navigator`对象也都有一套自己的属性。
 
 ### 12.3.1 检测插件
 
@@ -532,5 +534,48 @@ let hasPlugin = function(name) {
 alert(hasPlugin("Flash"));
 // detect quicktime
 alert(hasPlugin("QuickTime"));
+```
+
+
+
+## 12.4 `screen`对象
+
+`screen`对象基本上只用来表明客户端的能力，其中包括浏览器窗口外部的显示器的信息，如像素宽度和高度等。
+
+
+
+## 12.5 `history`对象
+
+`history`对象保存着用户上网的历史记录，从窗口被打开的那一刻算起。
+
+使用`go()`方法可以在用户的历史记录中任意跳转，可以向后也可以向前。这个方法接受一个参数，表示向后或向前跳转的页面数的一个整数值。
+
+```js
+//后退一页
+history.go(-1);
+
+//前进一页
+history.go(1);
+
+//前进两页
+history.go(2);
+```
+
+还可以使用两个简写方法`back()`和`forward()`来代替`go()`。顾名思义，这两个方法可以模仿浏览器的“后退”和“前进”按钮。
+
+```js
+//后退一页
+history.back();
+
+//前进一页
+history.forward();
+```
+
+`history`对象还有一个`length`属性，保存着历史记录的数量。
+
+```js
+if (history.length == 0){
+    //这应该是用户打开窗口后的第一个页面
+}
 ```
 
