@@ -119,3 +119,42 @@ let formerLastChild = someNode.removeChild(someNode.lastChild);
 
 
 ### 14.1.2 `Document`类型
+
+JavaScript通过`Document`类型表示文档，可以表示HTML页面或者其他基于XML的文档。
+
+在浏览器中，`document`对象是`HTMLDocument`（继承自`Document`类型）的一个实例，表示整个HTML页面。而且，`document`对象是`window`对象的一个属性，因此可以将其作为全局对象来访问。
+
+`Document`节点具有下列特征：
+
+- `nodeType`的值为9；
+- `nodeName`的值为`"#document"`；
+- `nodeValue`的值为`null`；
+- `parentNode`的值为`null`；
+- `ownerDocument`的值为`null`；
+- 其子节点可能是一个`DocumentType`（最多一个）、`Element`（最多一个）、`ProcessingInstruction`或`Comment`。
+
+**通过`document`这个文档对象，不仅可以取得与页面有关的信息，而且还能操作页面的外观及其底层结构。**
+
+#### 文档子节点
+
+- **`documentElement`属性** ：该属性始终指向HTML页面中的`<html>`元素。
+- **`childNodes`属性** ：该类数组属性可以访问文档元素的子元素。
+- **`body`属性** ：作为`HTMLDocument`的实例，`document`对象还有一个`body`属性，直接指向`<body>`元素。
+- **`doctype`属性** ：`DocumentType`可以作为`Document`的子节点。通常将`<!DOCTYPE>`标签看成一个与文档其他部分不同的实体，可以通过`doctype`属性（在浏览器中是`document.doctype`）来访问它的信息。
+
+```js
+// documentElement、firstChild和childNodes[0]的值相同，都指向<html>元素。
+let html = document.documentElement;        //取得对<html>的引用
+alert(html === document.childNodes[0]);     //true
+alert(html === document.firstChild);        //true
+```
+
+```js
+let body = document.body;    // 取得对<body>的引用
+```
+
+```js
+let doctype = document.doctype;     //取得对<!DOCTYPE>的引用
+```
+
+从技术上说，出现在`<html>`元素外部的注释应该算是文档的子节点。然而，不同的浏览器在是否解析这些注释以及能否正确处理它们等方面，存在很大差异。
