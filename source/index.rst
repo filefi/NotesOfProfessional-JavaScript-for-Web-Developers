@@ -23,7 +23,7 @@ Welcome to Notes Of Learning Python's documentation!
    Chapter11-Promises_and_Async_Functions
    Chapter12-The_Browser_Object_Model
    Chapter13-Client_Detection
-   Chapter14-The_Document_Object_Model.
+   Chapter14-The_Document_Object_Model
    Chapter15-DOM_Extensions
    Chapter16-DOM_Levels_2_and_3
    Chapter17-Events
