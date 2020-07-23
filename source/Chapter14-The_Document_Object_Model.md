@@ -158,3 +158,85 @@ let doctype = document.doctype;     //取得对<!DOCTYPE>的引用
 ```
 
 从技术上说，出现在`<html>`元素外部的注释应该算是文档的子节点。然而，不同的浏览器在是否解析这些注释以及能否正确处理它们等方面，存在很大差异。
+
+#### 文档信息
+
+作为`HTMLDocument`的一个实例，`document`对象还有一些标准的`Document`对象所没有的属性。这些属性提供了`document`对象所表现的网页的一些信息：
+
+- **`title`属性** ：包含着`<title>`元素中的文本，修改`title`属性的值会改变`<title>`元素。
+- **`URL`属性** ：中包含页面完整的URL（即地址栏中显示的URL）。
+- **`domain`属性** ：中只包含页面的域名。
+- **`referrer`属性** ：中则保存着链接到当前页面的那个页面的URL。在没有来源页面的情况下，`referrer`属性中可能会包含空字符串。
+
+#### 查找元素
+
+最常见的DOM应用就是取得特定的某个或某组元素的引用，然后再执行一些操作了。
+
+可以使用`document`对象的几个方法来取得元素。
+
+其中，`Document`类型为此提供了2个方法：
+
+- **`getElementById()`方法** ：接收一个参数：要取得的元素的`id`。如果找到相应的元素则返回该元素，如果不存在带有相应ID的元素，则返回`null`。如果页面中多个元素的ID值相同，`getElementById()`只返回文档中第一次出现的元素。
+- **`getElementsByTagName()`方法** ：这个方法接受一个参数，即要取得元素的标签名，而返回的是包含零或多个元素的`NodeList`。在HTML文档中，这个方法会返回一个`HTMLCollection`对象，作为一个“动态”集合，该对象与`NodeList`类似，可以使用方括号语法或`item()`方法来访问`HTMLCollection`对象中的项。
+
+`HTMLDocument`类型提供的方法：
+
+- **`getElementsByName()`方法** ：这个方法会返回带有给定`name`特性的所有元素。
+
+
+
+```js
+let div = document.getElementById("myDiv"); // retrieve reference to the <div>
+let div = document.getElementById("mydiv"); // null
+```
+
+```js
+let images = document.getElementsByTagName("img");
+
+alert(images.length); // output the number of images
+alert(images[0].src); // output the src attribute of the first image
+alert(images.item(0).src); // output the src attribute of the first image
+
+// namedItem()方法可以通过元素的name特性取得集合中的项。
+let myImage = images.namedItem("myImage");
+
+// HTMLCollection还支持按名称访问项
+let myImage = images["myImage"];
+
+// 要想取得文档中的所有元素，可以向getElementsByTagName()中传入"*"
+let allElements = document.getElementsByTagName("*");
+```
+
+#### 特殊集合
+
+除了属性和方法，`document`对象还有一些特殊的集合。这些集合都是`HTMLCollection`对象，都可以通过`HTMLDocument`对象访问到，而且，与`HTMLCollection`对象类似，集合中的项也会随着当前文档内容的更新而更新：
+
+- `document.anchors`，包含文档中所有带`name`特性的`<a>`元素；
+- `document.applets`，包含文档中所有的`<applet>`元素，因为不再推荐使用`<applet>`元素，所以这个集合已经不建议使用了；
+- `document.forms`，包含文档中所有的`<form>`元素，与`document.getElementsByTagName("form")`得到的结果相同；
+- `document.images`，包含文档中所有的`<img>`元素，与`document.getElementsByTagName("img")`得到的结果相同；
+- `document.links`，包含文档中所有带`href`特性的`<a>`元素。
+
+#### DOM一致性检测
+
+由于DOM分为多个级别，也包含多个部分，因此检测浏览器实现了DOM的哪些部分就十分必要了。
+
+`document.implementation`属性就是为此提供相应信息和功能的对象，与浏览器对DOM的实现直接对应。DOM1级只为`document.implementation`规定了一个方法，即`hasFeature()`。这个方法接受两个参数：要检测的DOM功能的名称及版本号。如果浏览器支持给定名称和版本的功能，则该方法返回`true`：
+
+```js
+hasXmlDom = document.implementation.hasFeature("XML", "1.0");
+```
+
+**建议多数情况下，在使用DOM的某些特殊的功能之前，最好除了检测`hasFeature()`之外，还同时使用能力检测。**
+
+#### 文档写入
+
+`document`对象具备将输出流写入到网页中的能力。这个能力体现在下列4个方法中：
+
+- **`write()`方法** ：接受一个字符串参数，即要写入到输出流中的文本。`write()`会原样写入。
+- **`writeln()`方法** ：接受一个字符串参数，即要写入到输出流中的文本。`writeln()`则会在字符串的末尾添加一个换行符（`\n`）。
+- **`open()`方法** ：用于打开网页的输出流。如果是在页面加载期间使用`write()`或`writeln()`方法，则不需要用到这两个方法。
+- **`close()`方法** ：用于关闭网页的输出流。如果是在页面加载期间使用`write()`或`writeln()`方法，则不需要用到这两个方法。
+
+
+
