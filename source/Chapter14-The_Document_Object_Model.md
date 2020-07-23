@@ -240,7 +240,7 @@ hasXmlDom = document.implementation.hasFeature("XML", "1.0");
 
 
 
-### 10.1.3 `Element`类型
+### 14.1.3 `Element`类型
 
 `Element`类型用于表现XML或HTML元素，提供了对元素标签名、子节点及特性的访问。`Element`节点具有以下特征：
 
