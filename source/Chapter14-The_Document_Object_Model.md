@@ -242,5 +242,91 @@ hasXmlDom = document.implementation.hasFeature("XML", "1.0");
 
 ### 10.1.3 `Element`类型
 
+`Element`类型用于表现XML或HTML元素，提供了对元素标签名、子节点及特性的访问。`Element`节点具有以下特征：
 
+- `nodeType`的值为1；
+- `nodeName`的值为元素的标签名；
+- `nodeValue`的值为`null`；
+- `parentNode`可能是`Document`或`Element`；
+- 其子节点可能是`Element`、`Text`、`Comment`、`ProcessingInstruction`、`CDATASection`或`EntityReference`。
+
+#### HTML元素
+
+**所有HTML元素都是由`HTMLElement`或者其更具体的子类型来表示的。** `HTMLElement`类型直接继承自`Element`并添加了一些属性。添加的这些属性分别对应于每个HTML元素中都存在的下列标准特性：
+
+- `id`，元素在文档中的唯一标识符。
+- `title`，有关元素的附加说明信息，一般通过工具提示条显示出来。
+- `lang`，元素内容的语言代码，很少使用。
+- `dir`，语言的方向，值为`"ltr"`（left-to-right，从左至右）或`"rtl"`（right-to-left，从右至左），也很少使用。
+- `className`，与元素的`class`特性对应，即为元素指定的CSS类。没有将这个属性命名为`class`，是因为`class`是ECMAScript的保留字。
+
+每个元素都有一或多个特性（attribute），这些特性（attribute）的用途是给出相应元素或其内容的附加信息。操作特性的DOM方法主要有：
+
+- **`getAttribute()`方法** ：这个方法可以取得元素特性（包括自定义特性）的值。如果给定名称的特性不存在，则返回`null`。
+- **`setAttribute()`方法** ：这个方法既可以操作HTML特性也可以操作自定义特性。这个方法接受2个参数：要设置的特性名和值。如果特性已经存在，`setAttribute()`会以指定的值替换现有的值；如果特性不存在，`setAttribute()`则创建该属性并设置相应的值。
+- **`removeAttribute()`方法** ：这个方法用于彻底删除元素的特性。调用这个方法不仅会清除特性的值，而且也会从元素中完全删除特性。
+
+#### 取得特性 (Getting Attributes)
+
+**任何元素的所有特性（attributes），可以通过`getAttribute()`方法取得（包括自定义属性）的值，也都可以通过DOM元素本身的属性（properties）来访问。**
+
+有2类特殊的特性，它们虽然有对应的特性名，但特性的值与通过`getAttribute()`返回的值并不相同：
+
+- 第一类特性就是`style`，用于通过CSS为元素指定样式。在通过`getAttribute()`访问时，返回的`style`特性值中包含的是CSS文本，而通过属性来访问它则会返回一个对象。由于`style`属性是用于以编程方式访问元素样式的，因此并没有直接映射到`style`特性。
+
+- 第二类与众不同的特性是`onclick`这样的事件处理程序。当在元素上使用时，`onclick`特性中包含的是JavaScript代码，如果通过`getAttribute()`访问，则会返回相应代码的字符串。而在访问`onclick`属性时，则会返回一个JavaScript函数（如果未在元素中指定相应特性，则返回null）。这是因为`onclick`及其他事件处理程序属性本身就应该被赋予函数值。
+
+由于存在这些差别，在通过JavaScript以编程方式操作DOM时，开发人员经常不使用`getAttribute()`，而是只使用对象的属性。
+
+#### 设置特性 (Setting Attributes)
+
+**因为所有特性都是属性，所以除了使用`setAttribute()`方法，还可以通过直接给属性赋值来设置特性的值。**
+
+```js
+// 使用setAttribute方法设置元素的特性值
+div.setAttribute("id", "someOtherId");
+div.setAttribute("class", "ft");
+div.setAttribute("title", "Some other text");
+div.setAttribute("lang","fr");
+div.setAttribute("dir", "rtl");
+
+// 通过直接给属性赋值来设置特性的值
+div.id = "someOtherId";
+div.align = "left";
+```
+
+不过，通过直接给属性赋值来添加自定义的属性，该属性不会自动成为元素的特性：
+
+```js
+div.mycolor = "red";
+alert(div.getAttribute("mycolor")); // null (except in Internet Explorer)
+```
+
+#### `attributes`属性
+
+`Element`类型有一个`attributes`属性，其他DOM节点类型都没有的这个`attributes`属性。`attributes`属性中包含一个`NamedNodeMap`，与`NodeList`类似，也是一个“动态”的集合。元素的每一个特性（attribute）都由一个`Attr`节点表示，每个节点都保存在`NamedNodeMap`对象中。`NamedNodeMap`对象拥有下列方法：
+
+- `getNamedItem(name)`：返回`nodeName`属性等于`name`的节点；
+- `removeNamedItem(name)`：从列表中移除`nodeName`属性等于`name`的节点，返回表示被删除特性的`Attr`节点。
+- `setNamedItem(node)`：向列表中添加节点，以节点的`nodeName`属性为索引；
+- `item(pos)`：返回位于数字`pos`位置处的节点。
+
+`attributes`属性中包含一系列节点，每个节点的`nodeName`就是特性的名称，而节点的`nodeValue`就是特性的值。
+
+```js
+// 取得元素的`id`特性
+let id = element.attributes.getNamedItem("id").nodeValue;
+
+// 以下是使用方括号语法通过特性名称访问节点的简写方式。
+let id = element.attributes["id"].nodeValue;
+
+// 也可以使用这种语法来设置特性的值，即先取得特性节点，然后再将其`nodeValue`设置为新值。
+element.attributes["id"].nodeValue = "someOtherId";
+```
+
+调用`removeNamedItem()`方法与在元素上调用`removeAttribute()`方法的效果相同，唯一的区别是`removeNamedItem()`返回表示被删除特性的`Attr`节点。
+
+```js
+let oldAttr = element.attributes.removeNamedItem("id");
+```
 
