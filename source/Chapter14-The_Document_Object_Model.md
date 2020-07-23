@@ -330,3 +330,66 @@ element.attributes["id"].nodeValue = "someOtherId";
 let oldAttr = element.attributes.removeNamedItem("id");
 ```
 
+如果想要遍历元素的特性，`attributes`属性可以派上用场。在需要将DOM结构序列化为XML或HTML字符串时，多数都会涉及遍历元素特性。
+
+```js
+// 迭代元素的每一个特性，然后将它们构造成name="value" name="value"这样的字符串格式
+function outputAttributes(element) {
+    let pairs = [];
+    for (let i = 0, len = element.attributes.length; i < len; ++i) {
+        const attribute = element.attributes[i];
+        pairs.push(`${attribute.nodeName}="${attribute.nodeValue}"`);
+    }
+    return pairs.join(" ");
+}
+```
+
+#### 创建元素
+
+使用`document.createElement()`方法可以创建新元素，并为新元素设置`ownerDocument`属性。这个方法只接受一个参数，即要创建元素的标签名。这个标签名在HTML文档中不区分大小写，而在XML（包括XHTML）文档中，则是区分大小写的。
+
+```js
+// 创建一个<div>元素
+let div = document.createElement("div");
+
+// 给新元素设置新属性
+div.id = "myNewDiv";
+div.className = "box";
+```
+
+要把新元素添加到文档树，可以使用`appendChild()`、`insertBefore()`或`replaceChild()`方法。
+
+```js
+// 把新创建的元素div添加到文档的<body>元素中
+document.body.appendChild(div);
+```
+
+一旦将元素添加到文档树中，浏览器就会立即呈现该元素。此后，对这个元素所作的任何修改都会实时反映在浏览器中。
+
+#### 元素的子节点
+
+元素可以有任意数目的子节点和后代节点，因为元素可以是其他元素的子节点。元素的`childNodes`属性中包含了它的所有子节点，这些子节点有可能是元素、文本节点、注释或处理指令。
+
+不同浏览器在看待这些节点方面存在显著的不同，以下面的代码为例。
+
+```html
+<ul id="myList">
+    <li>Item 1</li>
+    <li>Item 2</li>
+    <li>Item 3</li>
+</ul>
+```
+
+如果是IE来解析这些代码，那么`<ul>`元素会有3个子节点，分别是3个`<li>`元素。但如果是在其他浏览器中，`<ul>`元素都会有7个元素，包括3个`<li>`元素和4个文本节点（表示`<li>`元素之间的空白符）。如果像下面这样将元素间的空白符删除，那么所有浏览器都会返回相同数目的子节点。
+
+```html
+<ul id="myList"><li>Item 1</li><li>Item 2</li><li>Item 3</li></ul>
+```
+
+元素也支持`getElementsByTagName()`方法。在通过元素调用这个方法时，除了搜索起点是当前元素之外，其他方面都跟通过`document`调用这个方法相同，因此结果只会返回当前元素的后代。
+
+```js
+// 取得前面<ul>元素中包含的所有<li>元素
+let ul = document.getElementById("myList");
+let items = ul.getElementsByTagName("li");
+```
