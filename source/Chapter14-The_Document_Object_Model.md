@@ -393,3 +393,7 @@ document.body.appendChild(div);
 let ul = document.getElementById("myList");
 let items = ul.getElementsByTagName("li");
 ```
+
+
+
+### 14.1.4　`Text`类型
