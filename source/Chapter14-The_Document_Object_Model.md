@@ -240,3 +240,7 @@ hasXmlDom = document.implementation.hasFeature("XML", "1.0");
 
 
 
+### 10.1.3 `Element`类型
+
+
+
