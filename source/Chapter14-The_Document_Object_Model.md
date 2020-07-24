@@ -306,10 +306,10 @@ alert(div.getAttribute("mycolor")); // null (except in Internet Explorer)
 
 `Element`类型有一个`attributes`属性，其他DOM节点类型都没有的这个`attributes`属性。`attributes`属性中包含一个`NamedNodeMap`，与`NodeList`类似，也是一个“动态”的集合。元素的每一个特性（attribute）都由一个`Attr`节点表示，每个节点都保存在`NamedNodeMap`对象中。`NamedNodeMap`对象拥有下列方法：
 
-- `getNamedItem(name)`：返回`nodeName`属性等于`name`的节点；
-- `removeNamedItem(name)`：从列表中移除`nodeName`属性等于`name`的节点，返回表示被删除特性的`Attr`节点。
-- `setNamedItem(node)`：向列表中添加节点，以节点的`nodeName`属性为索引；
-- `item(pos)`：返回位于数字`pos`位置处的节点。
+- **`getNamedItem(name)`方法** ：返回`nodeName`属性等于`name`的节点；
+- **`removeNamedItem(name)`方法** ：从列表中移除`nodeName`属性等于`name`的节点，返回表示被删除特性的`Attr`节点。
+- **`setNamedItem(node)`方法** ：向列表中添加节点，以节点的`nodeName`属性为索引；
+- **`item(pos)`方法** ：返回位于数字`pos`位置处的节点。
 
 `attributes`属性中包含一系列节点，每个节点的`nodeName`就是特性的名称，而节点的`nodeValue`就是特性的值。
 
