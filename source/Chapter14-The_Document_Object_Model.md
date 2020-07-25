@@ -16,7 +16,9 @@ DOM可以将任何HTML或XML文档描绘成一个由多层节点构成的结构�
 
 ### 14.1.1 `Node`类型
 
-DOM1级定义了一个`Node`接口，该接口将由DOM中的所有节点类型实现。这个`Node`接口在JavaScript中是作为`Node`类型实现的；除了IE之外，在其他所有浏览器中都可以访问到这个类型。JavaScript中的所有节点类型都继承自`Node`类型，因此所有节点类型都共享着相同的基本属性和方法。
+DOM1级定义了一个`Node`接口，该接口将由DOM中的所有节点类型实现。这个`Node`接口在JavaScript中是作为`Node`类型实现的；除了IE之外，在其他所有浏览器中都可以访问到这个类型。
+
+**JavaScript中的所有节点类型都继承自`Node`类型，因此所有节点类型都共享着相同的基本属性和方法。**
 
 每个节点都有一个`nodeType`属性，用于表明**节点的类型** 。**节点类型**由在`Node`类型中定义的下列12个数值常量来表示，任何节点类型必居其一：
 
@@ -654,3 +656,254 @@ alert(element.getAttribute("align")); // "left"
 
 
 ## 14.2 操作DOM
+
+### 14.2.1 动态脚本
+
+**动态脚本**指的是在页面加载时不存在，但将来的某一时刻通过修改DOM动态添加的脚本。跟操作HTML元素一样，创建动态脚本也有两种方式：插入外部文件和直接插入JavaScript代码。
+
+```js
+let script = document.createElement("script");
+script.src = "foo.js";
+document.body.appendChild(script);   // 把<script>元素添加到页面中之前，是不会下载外部文件的。
+```
+
+以上代码创建了以下`<script>`元素：
+
+```html
+<script src="foo.js"></script>
+```
+
+另一种指定JavaScript代码的方式是行内方式，如下面的例子所示：
+
+```html
+<script>
+    function sayHi() {
+        alert("hi");
+    }
+</script>
+```
+
+从逻辑上讲，下面的DOM代码是等效的：
+
+```js
+let script = document.createElement("script");
+script.appendChild(document.createTextNode("function sayHi(){alert('hi');}"));
+document.body.appendChild(script);
+```
+
+### 14.2.2 动态样式
+
+能够把CSS样式包含到HTML页面中的元素有两个。其中，`<link>`元素用于包含来自外部的文件，而`<style>`元素用于指定嵌入的样式。
+
+与动态脚本类似，所谓**动态样式**是指在页面刚加载时不存在的样式；**动态样式**是在页面加载完成后动态添加到页面中的。**加载外部样式文件的过程是异步的。**
+
+以下面这个典型的`<link>`元素为例：
+
+```html
+<link rel="stylesheet" type="text/css" href="styles.css">
+```
+
+使用DOM代码可以很容易地动态创建出这个元素：
+
+```js
+let link = document.createElement("link");
+link.rel = "stylesheet";
+link.type = "text/css";
+link.href = "styles.css";
+let head = document.getElementsByTagName("head")[0];
+head.appendChild(link);   // 必须将<link>元素添加到<head>而不是<body>元素
+```
+
+另一种定义样式的方式是使用`<style>`元素来包含嵌入式CSS，如下所示：
+
+```html
+<style type="text/css">
+body {
+    background-color: red;
+}
+</style>
+```
+
+按照相同的逻辑，下列DOM代码应该是有效的：
+
+```js
+let style = document.createElement("style");
+style.type = "text/css";
+style.appendChild(document.createTextNode("body{background-color:red}"));
+let head = document.getElementsByTagName("head")[0];
+head.appendChild(style);
+```
+
+### 14.2.3 操作表格
+
+```html
+<table border="1" width="100%">
+    <tbody>
+        <tr>
+            <td>Cell 1,1</td>
+            <td>Cell 2,1</td>
+        </tr>
+        <tr>
+            <td>Cell 1,2</td>
+            <td>Cell 2,2</td>
+        </tr>
+    </tbody>
+</table>
+```
+
+```js
+// create the table
+let table = document.createElement("table");
+table.border = 1;
+table.width = "100%";
+
+// create the tbody
+let tbody = document.createElement("tbody");
+table.appendChild(tbody);
+
+// create the first row
+let row1 = document.createElement("tr");
+tbody.appendChild(row1);
+let cell1_1 = document.createElement("td");
+cell1_1.appendChild(document.createTextNode("Cell 1,1"));
+row1.appendChild(cell1_1);
+let cell2_1 = document.createElement("td");
+cell2_1.appendChild(document.createTextNode("Cell 2,1"));
+row1.appendChild(cell2_1);
+
+// create the second row
+let row2 = document.createElement("tr");
+tbody.appendChild(row2);
+let cell1_2 = document.createElement("td");
+cell1_2.appendChild(document.createTextNode("Cell 1,2"));
+row2.appendChild(cell1_2);
+let cell2_2= document.createElement("td");
+cell2_2.appendChild(document.createTextNode("Cell 2,2"));
+row2.appendChild(cell2_2);
+
+// add the table to the document body
+document.body.appendChild(table);
+```
+
+为了方便构建表格，HTML DOM还为`<table>`、`<tbody>`和`<tr>`元素添加了一些属性和方法。
+
+为`<table>`元素添加的属性和方法如下：
+
+- `caption`：保存着对`<caption>`元素（如果有）的指针。
+- `tBodies`：是一个`<tbody>`元素的`HTMLCollection`。
+- `tFoot`：保存着对`<tfoot>`元素（如果有）的指针。
+- `tHead`：保存着对`<thead>`元素（如果有）的指针。
+- `rows`：是一个表格中所有行的`HTMLCollection`。
+- `createTHead()`：创建`<thead>`元素，将其放到表格中，返回引用。
+- `createTFoot()`：创建`<tfoot>`元素，将其放到表格中，返回引用。
+- `createCaption()`：创建`<caption>`元素，将其放到表格中，返回引用。
+- `deleteTHead()`：删除`<thead>`元素。
+- `deleteTFoot()`：删除`<tfoot>`元素。
+- `deleteCaption()`：删除`<caption>`元素。
+- `deleteRow(pos)`：删除指定位置的行。
+- `insertRow(pos)`：向`rows`集合中的指定位置插入一行。
+
+为`<tbody>`元素添加的属性和方法如下：
+
+- `rows`：保存着`<tbody>`元素中行的`HTMLCollection`。
+- `deleteRow(pos)`：删除指定位置的行。
+- `insertRow(pos)`：向`rows`集合中的指定位置插入一行，返回对新插入行的引用。
+
+为`<tr>`元素添加的属性和方法如下：
+
+- `cells`：保存着`<tr>`元素中单元格的`HTMLCollection`。
+- `deleteCell(pos)`：删除指定位置的单元格。
+- `insertCell(pos)`：向`cells`集合中的指定位置插入一个单元格，返回对新插入单元格的引用。
+
+使用这些属性和方法，可以极大地减少创建表格所需的代码数量。例如，使用这些属性和方法可以将前面的代码重写如下：
+
+```js
+// create the table
+let table = document.createElement("table");
+table.border = 1;
+table.width = "100%";
+
+// create the tbody
+let tbody = document.createElement("tbody");
+table.appendChild(tbody);
+
+// create the first row
+tbody.insertRow(0);
+tbody.rows[0].insertCell(0);
+tbody.rows[0].cells[0].appendChild(document.createTextNode("Cell 1,1"));
+tbody.rows[0].insertCell(1);
+tbody.rows[0].cells[1].appendChild(document.createTextNode("Cell 2,1"));
+
+// create the second row
+tbody.insertRow(1);
+tbody.rows[1].insertCell(0);
+tbody.rows[1].cells[0].appendChild(document.createTextNode("Cell 1,2"));
+tbody.rows[1].insertCell(1);
+tbody.rows[1].cells[1].appendChild(document.createTextNode("Cell 2,2"));
+
+// add the table to the document body
+document.body.appendChild(table);
+```
+
+
+
+### 14.2.4 使用`NodeList`
+
+`NodeList`及其“近亲”`NamedNodeMap`和`HTMLCollection`都是“动态的”；换句话说，每当文档结构发生变化时，它们都会得到更新。因此，它们始终都会保存着最新、最准确的信息。从本质上说，所有`NodeList`对象都是在访问DOM文档时实时运行的查询。
+
+下列代码会导致无限循环：
+
+```js
+// 取得文档中所有<div>元素的HTMLCollection。
+let divs = document.getElementsByTagName("div");
+for (let i = 0; i < divs.length; ++i){  // 对条件i < divs.length求值，意味着会运行取得所有<div>元素的查询
+    // 创建一个新<div>元素
+    let div = document.createElement("div");
+    // 将div元素添加到文档中
+    document.body.appendChild(div);
+}
+```
+
+考虑到循环体每次都会创建一个新`<div>`元素并将其添加到文档中，因此`divs.length`的值在每次循环后都会递增。既然`i`和`divs.length`每次都会同时递增，结果它们的值永远也不会相等。
+
+使用ES6的迭代器并不能解决这个问题：
+
+```js
+for (let div of document.getElementsByTagName("div")){
+    let newDiv = document.createElement("div");
+    document.body.appendChild(newDiv);
+}
+```
+
+**如果想要迭代一个`NodeList`，最好是使用`length`属性初始化第二个变量，然后将迭代器与该变量进行比较：**
+
+```js
+let divs = document.getElementsByTagName("div");
+for (let i = 0, len = divs.length; i < len; ++i) {
+    let div = document.createElement("div");
+    document.body.appendChild(div);
+}
+```
+
+作为另一种替代方法，如果想避免使用第二个变量，也可以反向迭代列表：
+
+```js
+let divs = document.getElementsByTagName("div");
+for (let i = divs.length - 1; i >= 0; --i) {
+    let div = document.createElement("div");
+    document.body.appendChild(div);
+}
+```
+
+
+
+## 14.3 MUTATION OBSERVERS
+
+### 14.3.1 Basic usage
+
+### 14.3.2 Controlling the Observer scope with MutationObserverInit
+
+### 14.3.3 Async Callbacks and the Record Queue
+
+### 14.3.4 Performance, Memory, and Garbage Collection
+
