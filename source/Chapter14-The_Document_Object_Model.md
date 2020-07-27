@@ -359,7 +359,7 @@ div.id = "myNewDiv";
 div.className = "box";
 ```
 
-要把新元素添加到文档树，可以使用`appendChild()`、`insertBefore()`或`replaceChild()`方法。
+要把新元素添加到文档树，可以使用`appendChild()`、`insertBefore()`、`replaceChild()`或`Element.insertAdjacentElement()`方法。
 
 ```js
 // 把新创建的元素div添加到文档的<body>元素中
