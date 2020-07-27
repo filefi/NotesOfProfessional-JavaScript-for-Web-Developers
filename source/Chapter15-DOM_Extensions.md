@@ -270,3 +270,55 @@ document.forms[0].scrollIntoView({behavior: 'smooth', block: true});
 
 
 ## 15.4 专有扩展 (PROPRIETARY EXTENSIONS)
+
+### 15.4.1  `children`属性
+
+`children`属性是`HTMLCollection`的实例，只包含元素中同样还是元素的子节点。除此之外，`children`属性与`childNodes`没有什么区别，即在元素只包含元素子节点时，这两个属性的值相同：
+
+```js
+let childCount = element.children.length;
+let firstChild = element.children[0];
+```
+
+### 15.4.2 `contains()`方法
+
+`contains()`方法用来确定某个节点是不是当前节点的后代。调用`contains()`方法的应该是祖先节点，也就是搜索开始的节点，这个方法接收一个参数，即要检测的后代节点。如果被检测的节点是后代节点，该方法返回`true`；否则，返回`false`。
+
+```js
+console.log(document.documentElement.contains(document.body)); // true
+```
+
+使用DOM Level 3 `compareDocumentPosition()`也能够确定节点间的关系。如前所述，这个方法用于确定两个节点间的关系，返回一个表示该关系的位掩码（ bitmask）。下表列出了这个位掩码的值：
+
+| 掩码 | 节点关系                                    |
+| :--- | :------------------------------------------ |
+| 0x1  | 无关（给定的节点不在当前文档中）            |
+| 0x2  | 居前（给定的节点在DOM树中位于参考节点之前） |
+| 0x4  | 居后（给定的节点在DOM树中位于参考节点之后） |
+| 0x8  | 包含（给定的节点是参考节点的祖先）          |
+| 0x10 | 被包含（给定的节点是参考节点的后代）        |
+
+可以对`compareDocumentPosition()`的结果执行按位与，以确定参考节点（调用`compareDocumentPosition()`方法的当前节点）是否包含给定的节点（传入的节点）:
+
+
+```js
+let result = document.documentElement.compareDocumentPosition(document.body);
+console.log(!!(result & 0x10));
+```
+
+### 15.4.3 插入文本
+
+- **`innerText`属性** ：通过`innertText`属性可以操作元素中包含的所有文本内容，包括子文档树中的文本。在通过`innerText`读取值时，它会按照由浅入深的顺序，将子文档树中的所有文本拼接起来。在通过`innerText`写入值时，结果会删除元素的所有子节点，插入包含相应文本值的文本节点。**此外，设置`innerText`属性的同时，也对文本中存在的HTML语法标签字符（小于号、大于号、引号及和号）进行了转义。**
+- **`outerText`属性** ：除了作用范围扩大到了包含调用它的节点之外，`outerText`与`innerText`基本上没有多大区别。在读取文本值时，`outerText`与`innerText`的结果完全一样。但在写模式下，`outerText`就完全不同了：`outerText`不只是替换调用它的元素的子节点，而是会替换整个元素（包括子节点）。
+
+### 15.4.4 滚动
+
+以下方法是对`HTMLElement`类型的扩展，因此在所有元素中都可以调用。
+
+- `scrollIntoViewIfNeeded(alignCenter)`：只在当前元素在视口中不可见的情况下，才滚动浏览器窗口或容器元素，最终让它可见。如果当前元素在视口中可见，这个方法什么也不做。如果将可选的`alignCenter`参数设置为`true`，则表示尽量将元素显示在视口中部（垂直方向）。
+
+```js
+// Make sure this element is visible only if it's not already
+document.images[0].scrollIntoViewIfNeeded();
+```
+
