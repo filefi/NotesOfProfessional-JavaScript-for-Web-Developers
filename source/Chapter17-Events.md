@@ -262,5 +262,48 @@ EventUtil.removeHandler(btn, "click", handler);
 
 ## 17.3 事件对象
 
+在触发DOM上的某个事件时，会产生一个事件对象`event`，这个对象中包含着所有与事件有关的信息。包括导致事件的元素、事件的类型以及其他与特定事件相关的信息。例如，鼠标操作导致的事件对象中，会包含鼠标位置的信息，而键盘操作导致的事件对象中，会包含与按下的键有关的信息。所有浏览器都支持`event`对象，但支持方式不同。
 
+### 17.3.1 DOM中的事件对象
 
+兼容DOM的浏览器会将一个`event`对象传入到事件处理程序中。无论指定事件处理程序时使用什么方法（DOM0级或DOM2级），都会传入`event`对象。
+
+```js
+// 这个例子中的两个事件处理程序都会弹出一个警告框，显示由event.type属性表示的事件类型。
+
+let btn = document.getElementById("myBtn");
+
+btn.onclick = function(event) {
+    console.log(event.type); // "click"
+};
+
+btn.addEventListener("click", (event) => {
+    console.log(event.type); // "click"
+}, false);
+```
+
+在通过HTML特性指定事件处理程序时，变量`event`中保存着`event`对象。以这种方式提供`event`对象，可以让HTML特性事件处理程序与JavaScript函数执行相同的操作。请看下面的例子：
+
+```html
+<input type="button" value="Click Me" onclick="alert(event.type)"/>
+```
+
+`event`对象包含与创建它的特定事件有关的属性和方法。触发的事件类型不一样，可用的属性和方法也不一样。下表列出了所有事件都会有的成员：
+
+| 属性/方法                    | 类　　型       | 读/写 | 说　　明                                                     |
+| :--------------------------- | :------------- | :---- | :----------------------------------------------------------- |
+| `bubbles`                    | `Boolean`      | 只读  | 表明事件是否冒泡                                             |
+| `cancelable`                 | `Boolean`      | 只读  | 表明是否可以取消事件的默认行为                               |
+| `currentTarget`              | `Element`      | 只读  | 其事件处理程序当前正在处理事件的那个元素。                   |
+| `defaultPrevented`           | `Boolean`      | 只读  | 为`true`表示已经调用了`preventDefault()`（DOM3级事件中新增） |
+| `detail`                     | `Integer`      | 只读  | 与事件相关的细节信息                                         |
+| `eventPhase`                 | `Integer`      | 只读  | 调用事件处理程序的阶段：1表示捕获阶段，2表示“处于目标”，3表示冒泡阶段 |
+| `preventDefault()`           | `Function`     | 只读  | 取消事件的默认行为。如果`cancelable`是`true`，则可以使用这个方法 |
+| `stopImmediatePropagation()` | `Function`     | 只读  | 取消事件的进一步捕获或冒泡，同时阻止任何事件处理程序被调用（DOM3级事件中新增） |
+| `stopPropagation()`          | `Function`     | 只读  | 取消事件的进一步捕获或冒泡。如果`bubbles`为`true`，则可以使用这个方法 |
+| `target`                     | `Element`      | 只读  | 事件的实际目标                                               |
+| `trusted`                    | `Boolean`      | 只读  | 为`true`表示事件是浏览器生成的。为`false`表示事件是由开发人员通过JavaScript创建的（DOM3级事件中新增） |
+| `type`                       | `String`       | 只读  | 被触发的事件的类型                                           |
+| `view`                       | `AbstractView` | 只读  | 与事件关联的抽象视图。等同于发生事件的`window`对象           |
+
+在事件处理程序内部，对象`this`始终等于`currentTarget`的值，而`target`则只包含事件的实际目标。如果直接将事件处理程序指定给了目标元素，则`this`、`currentTarget`和`target`包含相同的值。
