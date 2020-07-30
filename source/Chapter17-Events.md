@@ -66,3 +66,25 @@ Netscape Communicator团队提出的另一种事件流叫做**事件捕获**（e
 
 ### 17.2.1 HTML事件处理程序
 
+某个元素支持的每种事件，都可以使用一个与相应事件处理程序同名的HTML特性来指定。这个特性的值应该是能够执行的JavaScript代码。
+
+例如，要在按钮被单击时执行一些JavaScript，可以像下面这样编写代码：
+
+```html
+<input type="button" value="Click Me" onclick="console.log('Clicked')"/>
+```
+
+当单击这个按钮时，就会显示一个控制台日志。这个操作是通过指定`onclick`特性并将一些JavaScript代码作为它的值来定义的。 **由于这个值是JavaScript代码，因此不能在其中使用未经转义的HTML语法字符，例如和号（&）、双引号（""）、小于号（<）或大于号（>）。**
+
+在HTML中定义的事件处理程序可以包含要执行的具体动作的JavaScript代码，也可以调用在页面其他地方定义的脚本，还可以调用外部文件中的代码：
+
+```html
+<script>
+function showMessage() {
+    console.log("Hello world!");
+}
+</script>
+<input type="button" value="Click Me" onclick="showMessage()"/>
+```
+
+事件处理程序中的代码在执行时，有权访问全局作用域中的任何代码。
