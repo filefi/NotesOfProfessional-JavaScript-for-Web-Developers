@@ -103,7 +103,7 @@ function showMessage() {
 <input type="button" value="Click Me" onclick="alert(this.value)">
 ```
 
-在HTML中指定事件处理程序的缺点：
+**在HTML中指定事件处理程序的缺点：**
 
 - 首先，存在一个时差问题。因为用户可能会在HTML元素一出现在页面上就触发相应的事件，但当时的事件处理程序有可能尚不具备执行条件。假设`showMessage()`函数是在按钮下方、页面的最底部定义的。如果用户在页面解析`showMessage()`函数之前就单击了按钮，就会引发错误。为此，很多HTML事件处理程序都会被封装在一个`try-catch`块中，以便错误不会浮出水面。
 
@@ -112,3 +112,155 @@ function showMessage() {
 - HTML与JavaScript代码紧密耦合。如果要更换事件处理程序，就要改动两个地方：HTML代码和JavaScript代码。
 
 ### 17.2.2 DOM0级事件处理程序
+
+通过JavaScript指定事件处理程序的传统方式，就是将一个函数赋值给一个事件处理程序属性。要使用JavaScript指定事件处理程序，首先必须取得一个要操作的对象的引用。
+
+每个元素（包括`window`和`document`）都有自己的事件处理程序属性，这些属性通常全部小写，例如`onclick`。将这种属性的值设置为一个函数，就可以指定事件处理程序，如下所示：
+
+```js
+let btn = document.getElementById("myBtn");
+btn.onclick = function() {
+	console.log("Clicked");
+};
+```
+
+注意，在这些代码运行以前不会指定事件处理程序，因此如果这些代码在页面中位于按钮后面，就有可能在一段时间内怎么单击都没有反应。
+
+使用DOM0级方法指定的事件处理程序被认为是元素的方法。因此，这时候的事件处理程序是在元素的作用域中运行；换句话说，程序中的`this`引用当前元素。
+
+```js
+let btn = document.getElementById("myBtn");
+btn.onclick = function() {
+    console.log(this.id); // "myBtn"
+};
+```
+
+可以在事件处理程序中通过`this`访问元素的任何属性和方法。**以这种方式添加的事件处理程序会在事件流的冒泡阶段被处理。**
+
+也可以删除通过DOM0级方法指定的事件处理程序，只要像下面这样将事件处理程序属性的值设置为`null`即可：
+
+```js
+btn.onclick = null;     //删除事件处理程序
+```
+
+**注意，DOM0级对每个事件只支持一个事件处理程序。**
+
+### 17.2.3 DOM2级事件处理程序
+
+“DOM2级事件”定义了两个方法，用于处理指定和删除事件处理程序的操作：
+
+- **`addEventListener()`方法** ：添加事件处理程序。
+
+- **`removeEventListener()`方法** ：移除通过`addEventListener()`添加的事件处理程序。移除时传入的参数与添加处理程序时使用的参数相同。这也意味着通过`addEventListener()` **添加的匿名函数将无法移除**。
+
+所有DOM节点中都包含这两个方法，并且它们都接受3个参数：要处理的事件名、作为事件处理程序的函数和一个布尔值。最后这个布尔值参数如果是`true`，表示**在捕获阶段调用**事件处理程序；如果是`false`，表示**在冒泡阶段调用**事件处理程序。
+
+要在按钮上为`click`事件添加事件处理程序，可以使用下列代码：
+
+```js
+let btn = document.getElementById("myBtn");
+btn.addEventListener("click", () => {   // 为一个按钮添加了onclick事件处理程序
+    console.log(this.id);
+}, false);
+```
+
+与DOM0级方法一样，这里添加的事件处理程序也是在其依附的元素的作用域中运行。
+
+**使用DOM2级方法添加事件处理程序可以为每个事件添加多个事件处理程序。**
+
+```js
+/* 
+这里为按钮添加了两个事件处理程序。
+这两个事件处理程序会按照添加它们的顺序触发，因此首先会显示元素的ID，其次会显示`"Hello world!"`消息。
+*/
+
+let btn = document.getElementById("myBtn");
+
+btn.addEventListener("click", () => {
+console.log(this.id);
+}, false);
+
+btn.addEventListener("click", () => {
+console.log("Hello world!");
+}, false);
+```
+
+通过`addEventListener()` 添加的匿名函数将无法移除：
+
+```js
+let btn = document.getElementById("myBtn");
+btn.addEventListener("click", () => {
+    console.log(this.id);
+}, false);
+
+// other code here
+btn.removeEventListener("click", function() { // won't work!
+    console.log(this.id);
+}, false);
+```
+
+```js
+let btn = document.getElementById("myBtn");
+let handler = function() {
+    console.log(this.id);
+};
+
+btn.addEventListener("click", handler, false);
+// other code here
+btn.removeEventListener("click", handler, false); // works!
+```
+
+**大多数情况下，都是将事件处理程序添加到事件流的冒泡阶段，这样可以最大限度地兼容各种浏览器。最好只在需要在事件到达目标之前截获它的时候将事件处理程序添加到捕获阶段。如果不是特别需要，我们不建议在事件捕获阶段注册事件处理程序。**
+
+### 17.2.4 IE事件处理程序
+
+略
+
+### 17.2.5 跨浏览器的事件处理程序
+
+以下代码实现了一个事件处理对象`EventUtil`，它有两个方法，分别用来实现添加和移除跨浏览器的事件处理程序：
+
+```js
+var EventUtil = {
+    // addHandler()方法接受3个参数：要操作的元素、事件名称和事件处理程序函数。
+    addHandler: function(element, type, handler) {  
+        if (element.addEventListener) { // 使用DOM0方法
+            element.addEventListener(type, handler, false);
+        } else if (element.attachEvent) { // 使用IE方法
+            element.attachEvent("on" + type, handler);
+        } else { // 默认使用DOM0分发
+            element["on" + type] = handler;
+        }
+    },
+    // removeHandler()方法接受3个参数：要操作的元素、事件名称和事件处理程序函数。
+    removeHandler: function(element, type, handler) {
+        if (element.removeEventListener) { // 使用DOM0方法
+            element.removeEventListener(type, handler, false);
+        } else if (element.detachEvent) { // 使用IE方法
+            element.detachEvent("on" + type, handler);
+        } else { // 默认使用DOM0分发
+            element["on" + type] = null;
+        }
+    }
+};
+```
+
+可以像下面这样使用`EventUtil`对象：
+
+```js
+let btn = document.getElementById("myBtn");
+let handler = function() {
+    console.log("Clicked");
+};
+
+EventUtil.addHandler(btn, "click", handler);
+// other code here
+EventUtil.removeHandler(btn, "click", handler);
+```
+
+
+
+## 17.3 事件对象
+
+
+
