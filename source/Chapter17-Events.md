@@ -391,3 +391,65 @@ document.body.onclick = (event) => {
 略
 
 ### 17.3.3 跨浏览器的事件对象
+
+虽然DOM和IE中的`event`对象不同，但基于它们之间的相似性依旧可以拿出跨浏览器的方案来。IE中`event`对象的全部信息和方法DOM对象中都有，只不过实现方式不一样。可以对前面介绍的`EventUtil`对象加以增强，添加如下方法：
+
+```js
+var EventUtil = {
+    addHandler: function(element, type, handler) {
+        // code removed for printing
+    },
+    getEvent: function(event) {
+        return event ? event : window.event;
+    },
+    getTarget: function(event) {
+        return event.target || event.srcElement;
+    },
+    preventDefault: function(event) {
+        if (event.preventDefault) {
+            event.preventDefault();
+        } else {
+            event.returnValue = false;
+        }
+    },
+    removeHandler: function(element, type, handler) {
+        // code removed for printing
+    },
+    stopPropagation: function(event) {
+        if (event.stopPropagation) {
+            event.stopPropagation();
+        } else {
+            event.cancelBubble = true;
+        }
+    }
+};
+```
+
+
+
+## 17.4 事件类型
+
+Web浏览器中可能发生的事件有很多类型。如前所述，不同的事件类型具有不同的信息，而“DOM3级事件”规定了以下几类事件。
+
+- UI（User Interface，用户界面）事件，当用户与页面上的元素交互时触发；
+- 焦点事件，当元素获得或失去焦点时触发；
+- 鼠标事件，当用户通过鼠标在页面上执行操作时触发；
+- 滚轮事件，当使用鼠标滚轮（或类似设备）时触发；
+- 文本事件，当在文档中输入文本时触发；
+- 键盘事件，当用户通过键盘在页面上执行操作时触发；
+- 合成事件，当为IME（Input Method Editor，输入法编辑器）输入字符时触发；
+- 变动（mutation）事件，当底层DOM结构发生变化时触发。
+- 变动名称事件，当元素或属性名变动时触发。此类事件已经被废弃，没有任何浏览器实现它们，因此本章不做介绍。
+
+### 17.4.1 UI事件
+
+现有的UI事件如下：
+
+- `DOMActivate`：表示元素已经被用户操作（通过鼠标或键盘）激活。这个事件在DOM3级事件中被废弃，但Firefox 2+和Chrome支持它。考虑到不同浏览器实现的差异，不建议使用这个事件。
+- `load`：当页面完全加载后在`window`上面触发，当所有框架都加载完毕时在框架集上面触发，当图像加载完毕时在`<img>`元素上面触发，或者当嵌入的内容加载完毕时在`<object>`元素上面触发。
+- `unload`：当页面完全卸载后在`window`上面触发，当所有框架都卸载后在框架集上面触发，或者当嵌入的内容卸载完毕后在`<object>`元素上面触发。
+- `abort`：在用户停止下载过程时，如果嵌入的内容没有加载完，则在`<object>`元素上面触发。
+- `error`：当发生JavaScript错误时在`window`上面触发，当无法加载图像时在`<img>`元素上面触发，当无法加载嵌入内容时在`<object>`元素上面触发，或者当有一或多个框架无法加载时在框架集上面触发。
+- `select`：当用户选择文本框（`<input>`或`<textarea>`）中的一或多个字符时触发。
+- `resize`：当窗口或框架的大小变化时在`window`或框架上面触发。
+- `scroll`：当用户滚动带滚动条的元素中的内容时，在该元素上面触发。`<body>`元素中包含所加载页面的滚动条。
