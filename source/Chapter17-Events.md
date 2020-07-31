@@ -307,3 +307,87 @@ btn.addEventListener("click", (event) => {
 | `view`                       | `AbstractView` | 只读  | 与事件关联的抽象视图。等同于发生事件的`window`对象           |
 
 在事件处理程序内部，对象`this`始终等于`currentTarget`的值，而`target`则只包含事件的实际目标。如果直接将事件处理程序指定给了目标元素，则`this`、`currentTarget`和`target`包含相同的值。
+
+在需要通过一个函数处理多个事件时，可以使用`event.type`属性。例如：
+
+```js
+let btn = document.getElementById("myBtn");
+
+// 定义了一个名为handler的函数，用于处理3种事件：click、mouseover和mouseout。
+let handler = function(event) {
+    switch(event.type) {
+        case "click":
+            console.log("Clicked");
+            break;
+        case "mouseover":
+            event.target.style.backgroundColor = "red";
+            break;
+        case "mouseout":
+            event.target.style.backgroundColor = "";
+            break;
+    }
+};
+
+btn.onclick = handler;
+btn.onmouseover = handler;
+btn.onmouseout = handler;
+```
+
+要阻止特定事件的默认行为，可以使用`preventDefault()`方法。例如，链接的默认行为就是在被单击时会导航到其`href`特性指定的URL。如果你想阻止链接导航这一默认行为，那么通过链接的`onclick`事件处理程序可以取消它，如下面的例子所示。
+
+```js
+let link = document.getElementById("myLink");
+link.onclick = function(event) {
+    event.preventDefault();
+};
+```
+
+另外，`stopPropagation()`方法用于立即停止事件在DOM层次中的传播，即取消进一步的事件捕获或冒泡。例如，直接添加到一个按钮的事件处理程序可以调用`stopPropagation()`，从而避免触发注册在`document.body`上面的事件处理程序，如下面的例子所示：
+
+```js
+/*
+如果不调用stopPropagation()，就会在单击按钮时出现两个警告框。可是，由于click事件根本不会传播到document.body，因此就不会触发注册在这个元素上的onclick事件处理程序。
+*/
+
+let btn = document.getElementById("myBtn");
+
+btn.onclick = function(event) {
+    console.log("Clicked");
+    event.stopPropagation();
+};
+
+document.body.onclick = function(event) {
+    console.log("Body clicked");
+};
+```
+
+事件对象的`eventPhase`属性，可以用来确定事件当前正位于事件流的哪个阶段。如果是在捕获阶段调用的事件处理程序，那么`eventPhase`等于`1`；如果事件处理程序处于目标对象上，则`eventPhase`等于`2`；如果是在冒泡阶段调用的事件处理程序，`eventPhase`等于`3`。这里要注意的是，尽管“处于目标”发生在冒泡阶段，但`eventPhase`仍然一直等于`2`。
+
+```js
+/*
+当单击这个例子中的按钮时，首先执行的事件处理程序是在捕获阶段触发的添加到document.body中的那一个，结果会弹出一个警告框显示表示eventPhase的1。接着，会触发在按钮上注册的事件处理程序，此时的eventPhase值为2。最后一个被触发的事件处理程序，是在冒泡阶段执行的添加到document.body上的那一个，显示eventPhase的值为3。而当eventPhase等于2时，this、target和currentTarget始终都是相等的。
+*/
+
+
+let btn = document.getElementById("myBtn");
+
+btn.onclick = function(event) {
+    console.log(event.eventPhase); // 2
+};
+
+document.body.addEventListener("click", (event) => {
+    console.log(event.eventPhase); // 1
+}, true);
+
+document.body.onclick = (event) => {
+    console.log(event.eventPhase); // 3
+};
+```
+
+> **注意：只有在事件处理程序执行期间，`event`对象才会存在；一旦事件处理程序执行完成，`event`对象就会被销毁。**
+
+### 17.3.2 IE中的事件对象
+
+略
+
+### 17.3.3 跨浏览器的事件对象
