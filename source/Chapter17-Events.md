@@ -688,3 +688,48 @@ document.addEventListener("mousewheel", (event) => {
 - 不要使用`dblclick`执行重要的操作。键盘无法触发这个事件。
 
 ### 17.4.4 键盘与文本事件
+
+有3个键盘事件：
+
+- `keydown`：当用户按下键盘上的任意键时触发，而且如果按住不放的话，会重复触发此事件。
+- `keypress`：当用户按下键盘上的字符键时触发，而且如果按住不放的话，会重复触发此事件。按下Esc键也会触发这个事件。DOM Level 3 Events deprecates the keypress event in favor of the textInput event.
+- `keyup`：当用户释放键盘上的键时触发。
+
+1个文本事件：
+
+- `textInput`：在将文本显示给用户之前更容易拦截文本。在文本插入文本框之前会触发`textInput`事件。
+
+在用户按了一下键盘上的**字符键**时，首先会触发`keydown`事件，然后紧跟着是`keypress`事件，最后会触发`keyup`事件。其中，`keydown`和`keypress`都是在文本框发生变化之前被触发的；而`keyup`事件则是在文本框已经发生变化之后被触发的。如果用户按下了一个字符键不放，就会重复触发`keydown`和`keypress`事件，直到用户松开该键为止。
+
+如果用户按下的是一个**非字符键**，那么首先会触发`keydown`事件，然后就是`keyup`事件。如果按住这个非字符键不放，那么就会一直重复触发`keydown`事件，直到用户松开这个键，此时会触发`keyup`事件。
+
+#### 键码
+
+在发生`keydown`和`keyup`事件时，`event`对象的`keyCode`属性中会包含一个代码，与键盘上一个特定的键对应。对数字字母字符键，`keyCode`属性的值与ASCII码中对应小写字母或数字的编码相同。
+
+```js
+let textbox = document.getElementById("myText");
+textbox.addEventListener("keyup", (event) => {
+    console.log(event.keyCode);
+});
+```
+
+#### 字符编码
+
+发生`keypress`事件意味着按下的键会影响到屏幕中文本的显示。在所有浏览器中，按下能够插入或删除字符的键都会触发`keypress`事件；按下其他键能否触发此事件因浏览器而异。
+
+`event`对象都支持一个`charCode`属性，这个属性只有在发生`keypress`事件时才包含值，而且这个值是按下的那个键所代表字符的ASCII编码。
+
+#### DOM3级的变化
+
+尽管所有浏览器都实现了某种形式的键盘事件，DOM3级事件还是做出了一些改变：
+
+- `key`属性：`key`属性是为了取代`keyCode`而新增的，它的值是一个字符串。在按下某个字符键时，`key`的值就是相应的文本字符（如“k”或“M”）；在按下非字符键时，`key`的值是相应键的名（如“Shift”或“Down”）。
+- `char`属性：`char`属性在按下字符键时的行为与`key`相同，但在按下非字符键时值为`null`。
+- `location`属性：这是一个数值，表示按下了什么位置上的键：0表示默认键盘，1表示左侧位置（例如左位的Alt键），2表示右侧位置（例如右侧的Shift键），3表示数字小键盘，4表示移动设备键盘（也就是虚拟键盘），5表示手柄（如任天堂Wii控制器）。
+- `getModifierState()`方法：这个方法接收一个参数，即等于`Shift`、`Control`、`AltGraph`或`Meta`的字符串，表示要检测的修改键。如果指定的修改键是活动的（也就是处于被按下的状态），这个方法返回`true`，否则返回`false`。实际上，通过`event`对象的`shiftKey`、`altKey`、`ctrlKey`和`metaKey`属性已经可以取得类似的属性了。
+
+DOM3级事件中的键盘事件，不再包含`charCode`属性，而是包含两个新属性：`key`和`char`。Safari和Chrome支持名为`keyIdentifier`的属性，在按下非字符键（例如Shift）的情况下与`key`的值相同。对于字符键，`keyIdentifier`返回一个格式类似“U+0000”的字符串，表示`Unicode`值。
+
+**由于存在跨浏览器问题，因此不推荐使用`key`、`keyIdentifier`、`char`或`location`。**
+
