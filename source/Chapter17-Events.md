@@ -446,10 +446,245 @@ Web浏览器中可能发生的事件有很多类型。如前所述，不同的�
 现有的UI事件如下：
 
 - `DOMActivate`：表示元素已经被用户操作（通过鼠标或键盘）激活。这个事件在DOM3级事件中被废弃，但Firefox 2+和Chrome支持它。考虑到不同浏览器实现的差异，不建议使用这个事件。
-- `load`：当页面完全加载后在`window`上面触发，当所有框架都加载完毕时在框架集上面触发，当图像加载完毕时在`<img>`元素上面触发，或者当嵌入的内容加载完毕时在`<object>`元素上面触发。
+- `load`：当页面完全加载后在`window`上面触发，当所有框架都加载完毕时在框架集上面触发，当图像加载完毕时在`<img>`元素上面触发，或者当嵌入的内容加载完毕时在`<object>`元素上面触发。当页面完全加载后（包括所有图像、JavaScript文件、CSS文件等外部资源），就会触发`window`上面的`load`事件。
 - `unload`：当页面完全卸载后在`window`上面触发，当所有框架都卸载后在框架集上面触发，或者当嵌入的内容卸载完毕后在`<object>`元素上面触发。
 - `abort`：在用户停止下载过程时，如果嵌入的内容没有加载完，则在`<object>`元素上面触发。
 - `error`：当发生JavaScript错误时在`window`上面触发，当无法加载图像时在`<img>`元素上面触发，当无法加载嵌入内容时在`<object>`元素上面触发，或者当有一或多个框架无法加载时在框架集上面触发。
 - `select`：当用户选择文本框（`<input>`或`<textarea>`）中的一或多个字符时触发。
 - `resize`：当窗口或框架的大小变化时在`window`或框架上面触发。
 - `scroll`：当用户滚动带滚动条的元素中的内容时，在该元素上面触发。`<body>`元素中包含所加载页面的滚动条。
+
+#### `load`事件
+
+当页面完全加载后（包括所有图像、JavaScript文件、CSS文件等外部资源），就会触发`window`上面的`load`事件。
+
+有2种定义`onload`事件处理程序的方式：
+
+- 使用DOM方式
+- 使用HTML标签`onload`属性
+
+```js
+// 使用DOM方式为window定义onload事件处理程序
+window.addEventListener("load", (event) => {
+    console.log("Loaded!");
+});
+```
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Load Event Example</title>
+</head>
+<!-->在window上面发生的任何事件都可以在<body>元素中通过相应的特性来指定，因为在HTML中无法访问window元素。<-->
+<body onload="console.log('Loaded!')">
+</body>
+</html>
+```
+
+图像上面也可以触发`load`事件，无论是在DOM中的图像元素还是HTML中的图像元素。
+
+```html
+<!-->可以在HTML中为任何图像指定`onload`事件处理程序<-->
+<img src="smile.gif" onload="console.log('Image loaded.')">
+```
+
+```js
+// 使用DOM为任何图像指定`onload`事件处理程序
+let image = document.getElementById("myImage");
+image.addEventListener("load", (event) => {
+    console.log(event.target.src);
+});
+```
+
+在创建新的`<img>`元素时，可以为其指定一个事件处理程序，以便图像加载完毕后给出提示。此时，最重要的是要在指定`src`属性之前先指定事件：
+
+```js
+window.addEventListener("load", () => {
+    let image = document.createElement("img");
+    image.addEventListener("load", (event) => {
+        console.log(event.target.src);
+    });
+    document.body.appendChild(image);
+    image.src = "smile.gif";   // 注意：新图像元素只要设置了src属性就会开始下载。
+});
+```
+
+```js
+// 同样的功能也可以通过使用DOM0级的Image对象实现。
+window.addEventListener("load", () => {
+    let image = new Image();  // 可以像使用<img>元素一样使用Image对象。
+    image.addEventListener("load", (event) => {
+        console.log("Image loaded!");
+    });
+    image.src = "smile.gif";
+});
+```
+
+还有一些元素也以非标准的方式支持`load`事件。在现代浏览器中，`<script>`元素也会触发`load`事件，以便开发人员确定动态加载的JavaScript文件是否加载完毕。与图像不同，只有在设置了`<script>`元素的`src`属性并将该元素添加到文档后，才会开始下载JavaScript文件。
+
+```js
+window.addEventListener("load", () => {
+    let script = document.createElement("script");
+    script.addEventListener("load", (event) => {
+        console.log("Loaded");
+    });
+    script.src = "example.js";
+    document.body.appendChild(script);
+});
+```
+
+#### `unload`事件
+
+与`load`事件对应的是`unload`事件，这个事件在文档被完全卸载后触发。只要用户从一个页面切换到另一个页面，就会发生`unload`事件。而利用这个事件最多的情况是清除引用，以避免内存泄漏。
+
+与`load`事件类似，也有两种指定`onunload`事件处理程序的方式：
+
+- 使用JavaScript操作DOM；
+- 使用`<body>`元素的`onunload`属性；
+
+```js
+window.addEventListener("unload", (event) => {
+    console.log("Unloaded!");
+});
+```
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Unload Event Example</title>
+</head>
+<body onunload="console.log('Unloaded!')">
+</body>
+</html>
+```
+
+#### `resize`事件
+
+当浏览器窗口被调整到一个新的高度或宽度时，就会触发`resize`事件。这个事件在`window`（窗口）上面触发，因此可以通过JavaScript或者`<body>`元素中的`onresize`特性来指定事件处理程序。
+
+```js
+window.addEventListener("resize", (event) => {
+    console.log("Resized");
+});
+```
+
+#### `scroll`事件
+
+虽然`scroll`事件是在`window`对象上发生的，但它实际表示的则是页面中相应元素的变化。在混杂模式下，可以通过`<body>`元素的`scrollLeft`和`scrollTop`来监控到这一变化；而在标准模式下，除Safari之外的所有浏览器都会通过`<html>`元素来反映这一变化（Safari仍然基于`<body>`跟踪滚动位置）。
+
+```js
+window.addEventListener("scroll", (event) => {
+    if (document.compatMode == "CSS1Compat") {
+        console.log(document.documentElement.scrollTop);
+    } else {
+        console.log(document.body.scrollTop);
+    }
+});
+```
+
+### 17.4.2 焦点事件
+
+焦点事件会在页面元素获得或失去焦点时触发。利用这些事件并与`document.hasFocus()`方法及`document.activeElement`属性配合，可以知晓用户在页面上的行踪。有以下6个焦点事件：
+
+- `blur`：在元素失去焦点时触发。这个事件不会冒泡；所有浏览器都支持它。
+- `DOMFocusIn`：在元素获得焦点时触发。这个事件与HTML事件`focus`等价，但它冒泡。DOM3级事件废弃了`DOMFocusIn`，选择了`focusin`。
+- `DOMFocusOut`：在元素失去焦点时触发。这个事件是HTML事件`blur`的通用版本。只有Opera支持这个事件。DOM3级事件废弃了`DOMFocusOut`，选择了`focusout`。
+- `focus`：在元素获得焦点时触发。这个事件不会冒泡；所有浏览器都支持它。
+- `focusin`：在元素获得焦点时触发。这个事件与HTML事件`focus`等价，但它冒泡。
+- `focusout`：在元素失去焦点时触发。这个事件是HTML事件`blur`的通用版本。
+
+当焦点从页面中的一个元素移动到另一个元素，会依次触发下列事件：
+
+1.  `focusout`在失去焦点的元素上触发；
+2. `focusin`在获得焦点的元素上触发；
+3. `blur`在失去焦点的元素上触发；
+4. `DOMFocusOut`在失去焦点的元素上触发；
+5. `focus`在获得焦点的元素上触发；
+6. `DOMFocusIn`在获得焦点的元素上触发。
+
+### 17.4.3 鼠标与滚轮事件
+
+鼠标事件：
+
+- `click`：在用户单击主鼠标按钮（一般是左边的按钮）或者按下回车键时触发。这一点对确保易访问性很重要，意味着`onclick`事件处理程序既可以通过键盘也可以通过鼠标执行。
+- `dblclick`：在用户双击主鼠标按钮（一般是左边的按钮）时触发。从技术上说，这个事件并不是DOM2级事件规范中规定的，但鉴于它得到了广泛支持，所以DOM3级事件将其纳入了标准。
+- `mousedown`：在用户按下了任意鼠标按钮时触发。不能通过键盘触发这个事件。
+- `mouseenter`：在鼠标光标从元素外部首次移动到元素范围之内时触发。这个事件不冒泡，而且在光标移动到后代元素上不会触发。DOM2级事件并没有定义这个事件，但DOM3级事件将它纳入了规范。
+- `mouseleave`：在位于元素上方的鼠标光标移动到元素范围之外时触发。这个事件不冒泡，而且在光标移动到后代元素上不会触发。DOM2级事件并没有定义这个事件，但DOM3级事件将它纳入了规范。
+- `mousemove`：当鼠标指针在元素内部移动时重复地触发。不能通过键盘触发这个事件。
+- `mouseout`：在鼠标指针位于一个元素上方，然后用户将其移入另一个元素时触发。又移入的另一个元素可能位于前一个元素的外部，也可能是这个元素的子元素。不能通过键盘触发这个事件。
+- `mouseover`：在鼠标指针位于一个元素外部，然后用户将其首次移入另一个元素边界之内时触发。不能通过键盘触发这个事件。
+- `mouseup`：在用户释放鼠标按钮时触发。不能通过键盘触发这个事件。
+- `mousewheel`：当用户通过鼠标滚轮与页面交互、在垂直方向上滚动页面时（无论向上还是向下），就会触发`mousewheel`事件。
+
+**页面上的所有元素都支持鼠标事件。除了`mouseenter`和`mouseleave`，所有鼠标事件都会冒泡，也可以被取消，而取消鼠标事件将会影响浏览器的默认行为。** 只有在同一个元素上相继触发`mousedown`和`mouseup`事件，才会触发`click`事件；如果`mousedown`或`mouseup`中的一个被取消，就不会触发`click`事件。类似地，只有触发两次`click`事件，才会触发一次`dblclick`事件。如果有代码阻止了连续两次触发`click`事件（可能是直接取消`click`事件，也可能通过取消`mousedown`或`mouseup`间接实现），那么就不会触发`dblclick`事件了。
+
+`mousedown`、`mouseup`、`click`、`dblclick`这4个事件触发的顺序始终如下：
+
+1. `mousedown`
+2. `mouseup`
+3. `click`
+4. `mousedown`
+5. `mouseup`
+6. `click`
+7. `dblclick`
+
+#### 客户端坐标位置 (Client Coordinates)
+
+鼠标事件都是在浏览器视口中的特定位置上发生的。这个位置信息保存在事件对象的`clientX`和`clientY`属性中。
+
+- `clientX`属性：表示事件发生时鼠标指针在**视口中的水平坐标** 。
+
+- `clientY`属性：表示事件发生时鼠标指针在**视口中的垂直坐标** 。
+
+#### 页面坐标位置 (Page Coordinates)
+页面坐标通过事件对象的`pageX`和`pageY`属性，能告诉你事件是在页面中的什么位置发生的。换句话说，这两个属性表示鼠标光标在页面中的位置，因此坐标是从页面本身而非视口的左边和顶边计算的。在页面没有滚动的情况下，`pageX`和`pageY`的值与`clientX`和`clientY`的值相等。
+
+#### 屏幕坐标位置 (Screen Coordinates)
+鼠标事件发生时，不仅会有相对于浏览器窗口的位置，还有一个相对于整个电脑屏幕的位置。而通过`screenX`和`screenY`属性就可以确定鼠标事件发生时鼠标指针相对于整个屏幕的坐标信息。
+
+#### 修改键 (Modifier Keys)
+虽然鼠标事件主要是使用鼠标来触发的，但在按下鼠标时键盘上的某些键的状态也可以影响到所要采取的操作。这些修改键就是Shift、Ctrl、Alt和Meta（在Windows键盘中是Windows键，在苹果机中是Cmd键），它们经常被用来修改鼠标事件的行为。DOM为此规定了4个属性，表示这些修改键的状态：`shiftKey`、`ctrlKey`、`altKey`和`metaKey`。这些属性中包含的都是布尔值，如果相应的键被按下了，则值为`true`，否则值为`false`。当某个鼠标事件发生时，通过检测这几个属性就可以确定用户是否同时按下了其中的键。
+
+#### 相关元素 (Related Elements)
+在发生`mouseover`和`mouseout`事件时，还会涉及更多的元素。这两个事件都会涉及把鼠标指针从一个元素的边界之内移动到另一个元素的边界之内。对`mouseover`事件而言，事件的主目标是获得光标的元素，而相关元素就是那个失去光标的元素。类似地，对`mouseout`事件而言，事件的主目标是失去光标的元素，而相关元素则是获得光标的元素。DOM通过`event`对象的`relatedTarget`属性提供了相关元素的信息。这个属性只对于`mouseover`和`mouseout`事件才包含值；对于其他事件，这个属性的值是`null`。
+
+#### 鼠标按钮
+对于`mousedown`和`mouseup`事件来说，则在其`event`对象存在一个`button`属性，表示按下或释放的按钮。DOM的`button`属性可能有如下3个值：`0`表示主鼠标按钮，`1`表示中间的鼠标按钮（鼠标滚轮按钮），`2`表示次鼠标按钮。在常规的设置中，主鼠标按钮就是鼠标左键，而次鼠标按钮就是鼠标右键。
+
+#### 额外事件信息
+
+“DOM2级事件”规范在`event`对象中还提供了`detail`属性，用于给出有关事件的更多信息。对于鼠标事件来说，`detail`中包含了一个数值，表示在给定位置上发生了多少次单击。在同一个元素上相继地发生一次`mousedown`和一次`mouseup`事件算作一次单击。`detail`属性从`1`开始计数，每次单击发生后都会递增。如果鼠标在`mousedown`和`mouseup`之间移动了位置，则`detail`会被重置为`0`。
+
+#### 鼠标滚轮事件
+
+当用户通过鼠标滚轮与页面交互、在垂直方向上滚动页面时（无论向上还是向下），就会触发`mousewheel`事件。这个事件可以在任何元素上面触发，最终会冒泡到`document`（IE8）或`window`（IE9、Opera、Chrome及Safari）对象。与`mousewheel`事件对应的`event`对象除包含鼠标事件的所有标准信息外，还包含一个特殊的`wheelDelta`属性。当用户向前滚动鼠标滚轮时，`wheelDelta`是120的倍数；当用户向后滚动鼠标滚轮时，`wheelDelta`是-120的倍数。
+
+将`mousewheel`事件处理程序指定给页面中的任何元素或`document`对象，即可处理鼠标滚轮的交互操作：
+
+```js
+document.addEventListener("mousewheel", (event) => {
+    console.log(event.wheelDelta);
+});
+```
+
+#### 触控设备的支持
+
+在面向触控设备进行开发时，要记住以下几点：
+
+- 不支持`dblclick`事件。双击浏览器窗口会放大画面，而且没有办法改变该行为。
+- 轻击可单击元素会触发`mousemove`事件。如果此操作会导致内容变化，将不再有其他事件发生；如果屏幕没有因此变化，那么会依次发生`mousedown`、`mouseup`和`click`事件。轻击不可单击的元素不会触发任何事件。可单击的元素是指那些单击可产生默认操作的元素（如链接），或者那些已经被指定了`onclick`事件处理程序的元素。
+- `mousemove`事件也会触发`mouseover`和`mouseout`事件。
+- 两个手指放在屏幕上且页面随手指移动而滚动时会触发`mousewheel`和`scroll`事件。
+
+#### 无障碍性问题 (Accessibility Issues)
+
+如果你的Web应用程序或网站要确保残疾人特别是那些使用屏幕阅读器的人都能访问，那么在使用鼠标事件时就要格外小心。以下是在使用鼠标事件时应当注意的几个易访问性问题。
+
+- 使用`click`事件执行代码。有人指出通过`onmousedown`执行代码会让人觉得速度更快，对视力正常的人来说这是没错的。但是，在屏幕阅读器中，由于无法触发`mousedown`事件，结果就会造成代码无法执行。
+- 不要使用`onmouseover`向用户显示新的选项。原因同上，屏幕阅读器无法触发这个事件。如果确实非要通过这种方式来显示新选项，可以考虑添加显示相同信息的键盘快捷方式。
+- 不要使用`dblclick`执行重要的操作。键盘无法触发这个事件。
+
+### 
