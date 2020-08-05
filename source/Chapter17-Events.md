@@ -808,3 +808,116 @@ The DOM Level 2 mutation events were designed to provide notification when a par
 
 
 ### 17.4.7 HTML5事件
+
+HTML5详尽列出了浏览器应该支持的所有事件。
+
+#### `contextmenu`事件
+
+为了实现上下文菜单，开发人员面临的主要问题是如何确定应该显示上下文菜单（在Windows中，是右键单击；在Mac中，是Ctrl+单击），以及如何屏蔽与该操作关联的默认上下文菜单。为解决这个问题，就出现了`contextmenu`这个事件，用以表示何时应该显示上下文菜单，以便开发人员取消默认的上下文菜单而提供自定义的菜单。
+
+由于`contextmenu`事件是冒泡的，因此可以为`document`指定一个事件处理程序，用以处理页面中发生的所有此类事件。这个事件的目标是发生用户操作的元素。在所有浏览器中都可以取消这个事件。
+
+因为`contextmenu`事件属于鼠标事件，所以其事件对象中包含与光标位置有关的所有属性。
+
+通常使用`contextmenu`事件来显示自定义的上下文菜单，而使用`onclick`事件处理程序来隐藏该菜单。以下面的HTML页面为例。
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>ContextMenu Event Example</title>
+</head>
+<body>
+    <div id="myDiv">Right click or Ctrl+click me to get a custom context menu.
+    Click anywhere else to get the default context menu.
+    </div>
+    <ul id="myMenu" style="position:absolute;visibility:hidden;background-color:
+    silver">
+        <li><a href="http://www.nczonline.net">Nicholas' site</a></li>
+        <li><a href="http://www.wrox.com">Wrox site</a></li>
+        <li><a href="http://www.yahoo.com">Yahoo!</a></li>
+    </ul>
+</body>
+</html>
+```
+
+这里的`<div>`元素包含一个自定义的上下文菜单。其中，`<ul>`元素作为自定义上下文菜单，并且在初始时是隐藏的。实现这个例子的JavaScript代码如下所示：
+
+```js
+window.addEventListener("load", (event) => {
+    let div = document.getElementById("myDiv");
+    div.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+        let menu = document.getElementById("myMenu");
+        menu.style.left = event.clientX + "px";
+        menu.style.top = event.clientY + "px";
+        menu.style.visibility = "visible";
+    });
+    document.addEventListener("click", (event) => {
+        document.getElementById("myMenu").style.visibility = "hidden";
+    });
+});
+```
+
+#### `beforeunload`事件
+
+之所以有发生在`window`对象上的`beforeunload`事件，是为了让开发人员有可能在页面卸载前阻止这一操作。这个事件会在浏览器卸载页面之前触发，可以通过它来取消卸载并继续使用原有页面。但是，不能彻底取消这个事件，因为那就相当于让用户无法离开当前页面了。为此，这个事件的意图是将控制权交给用户。显示的消息会告知用户页面行将被卸载（正因为如此才会显示这个消息），询问用户是否真的要关闭页面，还是希望继续留下来。
+
+```js
+window.addEventListener("beforeunload", (event) => {
+    let message = "I'm really going to miss you if you go.";
+    event.returnValue = message;
+    return message;
+});
+```
+
+#### `DOMContentLoaded`事件
+
+`DOMContentLoaded`事件则在形成完整的DOM树之后就会触发，不理会图像、JavaScript文件、CSS文件或其他资源是否已经下载完毕。
+
+与`load`事件不同，`DOMContentLoaded`支持在页面下载的早期添加事件处理程序，这也就意味着用户能够尽早地与页面进行交互。
+
+要处理`DOMContentLoaded`事件，可以为`document`或`window`添加相应的事件处理程序（尽管这个事件会冒泡到`window`，但它的目标实际上是`document`）：
+
+```js
+document.addEventListener("DOMContentLoaded", (event) => {
+    console.log("Content loaded");
+});
+```
+
+#### `readystatechange`事件
+
+`readystatechange`事件的目的是提供与文档或元素的加载状态有关的信息，但这个事件的行为有时候也很难预料。支持`readystatechange`事件的每个对象都有一个`readyState`属性，可能包含下列5个值中的一个：
+
+- `uninitialized`（未初始化）：对象存在但尚未初始化。
+- `loading`（正在加载）：对象正在加载数据。
+- `loaded`（加载完毕）：对象加载数据完成。
+- `interactive`（交互）：可以操作对象了，但还没有完全加载。
+- `complete`（完成）：对象已经加载完毕。
+
+这些状态看起来很直观，但并非所有对象都会经历`readyState`的这几个阶段。换句话说，如果某个阶段不适用某个对象，则该对象完全可能跳过该阶段；并没有规定哪个阶段适用于哪个对象。显然，这意味着`readystatechange`事件经常会少于4次，而`readyState`属性的值也不总是连续的。
+
+**对于`document`而言，值为`"interactive"`的`readyState`会在与`DOMContentLoaded`大致相同的时刻触发`readystatechange`事件。** 此时，DOM树已经加载完毕，可以安全地操作它了，因此就会进入交互（interactive）阶段。
+
+```js
+document.addEventListener("readystatechange", (event) => {
+    if (document.readyState == "interactive") {
+        console.log("Content loaded");
+    }
+});
+```
+
+**让问题变得更复杂的是，交互阶段可能会早于也可能会晚于完成阶段出现，无法确保顺序。** 在包含较多外部资源的页面中，交互阶段更有可能早于完成阶段出现；而在页面中包含较少外部资源的情况下，完成阶段先于交互阶段出现的可能性更大。因此，为了尽可能抢到先机，有必要同时检测交互和完成阶段，这样编写代码可以达到与使用`DOMContentLoaded`十分相近的效果。如下面的例子所示。
+
+```js
+document.addEventListener("readystatechange", (event) => {
+    if (document.readyState == "interactive" || document.readyState == "complete") {
+        document.removeEventListener("readystatechange", arguments.callee);
+        console.log("Content loaded");
+    }
+});
+```
+
+> 虽然使用`readystatechange`可以十分近似地模拟`DOMContentLoaded`事件，但它们本质上还是不同的。在不同页面中，`load`事件与`readystatechange`事件并不能保证以相同的顺序触发。
+
+#### `pageshow`和`pagehide`事件
