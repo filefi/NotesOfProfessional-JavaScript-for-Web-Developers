@@ -766,5 +766,37 @@ textbox.addEventListener("textInput", (event) => {
 
 
 
-### 17.4.5 复合事件
+### 17.4.5 复合事件 (Composition Events)
 
+**复合事件**（composition event）是DOM3级事件中新添加的一类事件，用于处理IME 的输入序列。
+
+IME（Input Method Editor，输入法编辑器）可以让用户输入在物理键盘上找不到的字符。例如，使用拉丁文键盘的用户通过IME照样能输入日文字符。IME通常需要同时按住多个键，但最终只输入一个字符。
+
+**复合事件**就是针对检测和处理这种输入而设计的。
+
+有以下三种复合事件。
+
+- `compositionstart`：在IME的文本复合系统打开时触发，表示要开始输入了。
+- `compositionupdate`：在向输入字段中插入新字符时触发。
+- `compositionend`：在IME的文本复合系统关闭时触发，表示返回正常键盘输入状态。
+
+复合事件与文本事件在很多方面都很相似。在触发复合事件时，目标是接收文本的输入字段。但它比文本事件的事件对象多一个属性`data`，其中包含以下几个值中的一个：
+
+- 如果在`compositionstart`事件发生时访问，包含正在编辑的文本（例如，已经选中的需要马上替换的文本）；
+- 如果在`compositionupdate`事件发生时访问，包含正插入的新字符；
+- 如果在`compositionend`事件发生时访问，包含此次输入会话中插入的所有字符。
+
+```js
+let textbox = document.getElementById("myText");
+textbox.addEventListener("compositionstart", (event) => {
+    console.log(event.data);
+});
+textbox.addEventListener("compositionupdate", (event) => {
+    console.log(event.data);
+});
+textbox.addEventListener("compositionend", (event) => {
+    console.log(event.data);
+});
+```
+
+### 17.4.6 变动事件
