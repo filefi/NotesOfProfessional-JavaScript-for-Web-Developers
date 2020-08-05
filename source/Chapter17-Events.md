@@ -799,4 +799,12 @@ textbox.addEventListener("compositionend", (event) => {
 });
 ```
 
-### 17.4.6 变动事件
+### 17.4.6 变动事件 (Mutation Events)
+
+The DOM Level 2 mutation events were designed to provide notification when a part of the DOM has been changed.
+
+> **NOTE These events are deprecated, and support is gradually being phased out. This feature is replaced by Mutation Observers, which is covered in The Document Object Model chapter.**
+
+
+
+### 17.4.7 HTML5事件
