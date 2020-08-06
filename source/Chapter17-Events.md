@@ -952,5 +952,43 @@ window.addEventListener("hashchange", (event) => {
 });
 ```
 
-### 17.4.8 设备事件
+### 17.4.8 设备事件 (Device Events)
+
+智能手机和平板电脑的普及，为用户与浏览器交互引入了一种新的方式，而一类新事件也应运而生。设备事件（device event）可以让开发人员确定用户在怎样使用设备。
+
+#### `orientationchange`事件
+
+苹果公司为移动Safari中添加了`orientationchange`事件，以便开发人员能够确定用户何时将设备由横向查看模式切换为纵向查看模式。移动Safari的`window.orientation`属性中可能包含3个值：`0`表示肖像模式，`90`表示向左旋转的横向模式（“主屏幕”按钮在右侧），-90表示向右旋转的横向模式（“主屏幕”按钮在左侧）。
+
+![](_static/images/Chapter17-Events.assets/16.d13z.10.png)
+
+只要用户改变了设备的查看模式，就会触发`orientationchange`事件。此时的`event`对象不包含任何有价值的信息，因为唯一相关的信息可以通过`window.orientation`访问到。
+
+```js
+window.addEventListener("load", (event) => {
+    let div = document.getElementById("myDiv");
+    div.innerHTML = "Current orientation is " + window.orientation;
+    window.addEventListener("orientationchange", (event) => { 
+        div.innerHTML = "Current orientation is " + window.orientation;
+    });
+});
+```
+
+所有iOS设备都支持`orientationchange`事件和`window.orientation`属性。
+
+#### `deviceorientation`事件
+
+本质上，DeviceOrientation Event规范定义的`deviceorientation`事件是在加速计检测到设备方向变化时在`window`对象上触发。`deviceorientation`事件的意图是告诉开发人员设备在空间中朝向哪儿，而不是如何移动。
+
+设备在三维空间中是靠*x*、*y*和*z*轴来定位的。当设备静止放在水平表面上时，这三个值都是0。*x*轴方向是从左往右，*y*轴方向是从下往上，*z*轴方向是从后往前。
+
+![](_static/images/Chapter17-Events.assets/image-20200806113426876.png)
+
+触发`deviceorientation`事件时，事件对象中包含着每个轴相对于设备静止状态下发生变化的信息。事件对象包含以下5个属性。
+
+- `alpha`：在围绕*z*轴旋转时（即左右旋转时），*y*轴的度数差；是一个介于0到360之间的浮点数。
+- `beta`：在围绕*x*轴旋转时（即前后旋转时），*z*轴的度数差；是一个介于?180到180之间的浮点数。
+- `gamma`：在围绕*y*轴旋转时（即扭转设备时），*z*轴的度数差；是一个介于?90到90之间的浮点数。
+- `absolute`：布尔值，表示设备是否返回一个绝对值。
+- `compassCalibrated`：布尔值，表示设备的指南针是否校准过。
 
