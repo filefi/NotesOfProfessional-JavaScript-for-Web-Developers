@@ -921,3 +921,36 @@ document.addEventListener("readystatechange", (event) => {
 > 虽然使用`readystatechange`可以十分近似地模拟`DOMContentLoaded`事件，但它们本质上还是不同的。在不同页面中，`load`事件与`readystatechange`事件并不能保证以相同的顺序触发。
 
 #### `pageshow`和`pagehide`事件
+
+现代浏览器都有一个特性，名叫“往返缓存”（back-forward cache，或bfcache），可以在用户使用浏览器的“后退”和“前进”按钮时加快页面的转换速度。这个缓存中不仅保存着页面数据，还保存了DOM和JavaScript的状态；实际上是将整个页面都保存在了内存里。如果页面位于bfcache中，那么再次打开该页面时就不会触发`load`事件。
+
+**`pageshow`事件**在页面显示时触发，无论该页面是否来自bfcache。在重新加载的页面中，`pageshow`会在`load`事件触发后触发；而对于bfcache中的页面，`pageshow`会在页面状态完全恢复的那一刻触发。另外要注意的是，虽然这个事件的目标是`document`，但必须将其事件处理程序添加到`window`。
+
+除了通常的属性之外，`pageshow`事件的`event`对象还包含一个名为`persisted`的布尔值属性。如果页面被保存在了bfcache中，则这个属性的值为`true`；否则，这个属性的值为`false`。
+
+**`pagehide`事件**会在浏览器卸载页面的时候触发，而且是在`unload`事件之前触发。与`pageshow`事件一样，`pagehide`在`document`上面触发，但其事件处理程序必须要添加到`window`对象。
+
+对于`pageshow`事件，如果页面是从bfcache中加载的，那么`persisted`的值就是`true`；对于`pagehide`事件，如果页面在卸载之后会被保存在bfcache中，那么`persisted`的值也会被设置为`true`。因此，当第一次触发`pageshow`时，`persisted`的值一定是`false`，而在第一次触发`pagehide`时，`persisted`就会变成`true`（除非页面不会被保存在bfcache中）。
+
+#### `hashchange`事件
+
+HTML5新增了`hashange`事件，以便在URL的参数列表（即URL中“#”号后面的所有字符串）发生变化时通知开发人员。
+
+必须要把`hashchange`事件处理程序添加给`window`对象，然后URL参数列表只要变化就会调用它。此时的`event`对象应该额外包含两个属性：`oldURL`和`newURL`。这两个属性分别保存着参数列表变化前后的完整URL。
+
+```js
+window.addEventListener("hashchange", (event) => {
+    console.log(`Old URL: ${event.oldURL}, New URL: ${event.newURL}`);
+});
+```
+
+由于浏览器实现差异的问题，最好是使用`location`对象来确定当前的参数列表：
+
+```js
+window.addEventListener("hashchange", (event) => {
+    console.log(`Current hash: ${location.hash}`);
+});
+```
+
+### 17.4.8 设备事件
+
