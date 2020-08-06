@@ -944,7 +944,7 @@ window.addEventListener("hashchange", (event) => {
 });
 ```
 
-由于浏览器实现差异的问题，最好是使用`location`对象来确定当前的参数列表：
+由于浏览器实现差异的问题，为了跨浏览器兼容性，最好是使用`location`对象来确定当前的参数列表：
 
 ```js
 window.addEventListener("hashchange", (event) => {
