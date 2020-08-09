@@ -992,3 +992,35 @@ window.addEventListener("load", (event) => {
 - `absolute`：布尔值，表示设备是否返回一个绝对值。
 - `compassCalibrated`：布尔值，表示设备的指南针是否校准过。
 
+![](_static/images/Chapter17-Events.assets/16.d13z.12.png)
+
+
+
+#### `devicemotion`事件
+
+DeviceOrientation Event规范还定义了一个`devicemotion`事件。这个事件是要告诉开发人员设备什么时候移动，而不仅仅是设备方向如何改变。例如，通过`devicemotion`能够检测到设备是不是正在往下掉，或者是不是被走着的人拿在手里。
+
+触发`devicemotion`事件时，事件对象包含以下属性。
+
+- `acceleration`：一个包含`x`、`y`和`z`属性的对象，在不考虑重力的情况下，告诉你在每个方向上的加速度。
+- `accelerationIncludingGravity`：一个包含`x`、`y`和`z`属性的对象，在考虑`z`轴自然重力加速度的情况下，告诉你在每个方向上的加速度。
+- `interval`：以毫秒表示的时间值，必须在另一个`devicemotion`事件触发前传入。这个值在每个事件中应该是一个常量。
+- `rotationRate`：一个包含表示方向的`alpha`、`beta`和`gamma`属性的对象。
+
+如果读取不到`acceleration`、`accelerationIncludingGravity`和`rotationRate`值，则它们的值为`null`。因此，在使用这三个属性之前，应该先检测确定它们的值不是`null`。
+
+```js
+window.addEventListener("devicemotion", (event) => {
+    let output = document.getElementById("output");
+    if (event.rotationRate !== null) {
+        output.innerHTML += `Alpha=${event.rotationRate.alpha}` +
+        `Beta=${event.rotationRate.beta}` +
+        `Gamma=${event.rotationRate.gamma}`;
+    }
+});
+```
+
+
+
+### 17.4.9 触摸与手势事件
+
