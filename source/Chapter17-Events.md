@@ -1183,3 +1183,155 @@ btn.onclick = function() {
 ## 17.6 模拟事件
 
 ### 17.6.1 DOM中的事件模拟
+
+在DOM中模拟事件的步骤：
+
+- **创建事件** ：使用`document`对象的`createEvent()`方法创建`event`对象。这个方法接收一个参数，即表示要创建的事件类型的字符串。字符串可以是下列几字符串之一：
+    - `UIEvents`：一般化的UI事件。鼠标事件和键盘事件都继承自UI事件。DOM3级中是`UIEvent`。
+    - `MouseEvents`：一般化的鼠标事件。DOM3级中是`MouseEvent`。
+    - `MutationEvents`：一般化的DOM变动事件。DOM3级中是`MutationEvent`。
+    - `HTMLEvents`：一般化的HTML事件。没有对应的DOM3级事件（HTML事件被分散到其他类别中）。
+- **对事件进行初始化** ：在创建了`event`对象之后，还需要使用与事件有关的信息对其进行初始化。每种类型的`event`对象都有一个特殊的方法，为它传入适当的数据就可以初始化该`event`对象。不同类型的这个方法的名字也不相同，具体要取决于`createEvent()`中使用的参数。
+- **触发事件** ：这一步需要使用`dispatchEvent()`方法，所有支持事件的DOM节点都支持这个方法。调用`dispatchEvent()`方法时，需要传入一个参数，即表示要触发事件的`event`对象。
+
+#### 模拟鼠标事件
+
+创建新的鼠标事件对象并为其指定必要的信息，就可以模拟鼠标事件。创建鼠标事件对象的方法是为`createEvent()`传入字符串`"MouseEvents"`。返回的对象有一个名为`initMouseEvent()`方法，用于指定与该鼠标事件有关的信息。这个方法接收15个参数，分别与鼠标事件中每个典型的属性一一对应；这些参数的含义如下：
+
+- `type`（字符串）：表示要触发的事件类型，例如`"click"`。
+- `bubbles`（布尔值）：表示事件是否应该冒泡。为精确地模拟鼠标事件，应该把这个参数设置为`true`。
+- `cancelable`（布尔值）：表示事件是否可以取消。为精确地模拟鼠标事件，应该把这个参数设置为`true`。
+- `view`（AbstractView）：与事件关联的视图。这个参数几乎总是要设置为`document.defaultView`。
+- `detail`（整数）：与事件有关的详细信息。这个值一般只有事件处理程序使用，但通常都设置为0。
+- `screenX`（整数）：事件相对于屏幕的X坐标。
+- `screenY`（整数）：事件相对于屏幕的Y坐标。
+- `clientX`（整数）：事件相对于视口的X坐标。
+- `clientY`（整数）：事件想对于视口的Y坐标。
+- `ctrlKey`（布尔值）：表示是否按下了Ctrl键。默认值为`false`。
+- `altKey`（布尔值）：表示是否按下了Alt键。默认值为`false`。
+- `shiftKey`（布尔值）：表示是否按下了Shift键。默认值为`false`。
+- `metaKey`（布尔值）：表示是否按下了Meta键。默认值为`false`。
+- `button`（整数）：表示按下了哪一个鼠标键。默认值为`0`。
+- `relatedTarget`（对象）：表示与事件相关的对象。这个参数只在模拟`mouseover`或`mouseout`时使用。
+
+```js
+let btn = document.getElementById("myBtn");
+
+// create event object
+let event = document.createEvent("MouseEvents");
+
+// initialize the event object
+event.initMouseEvent("click", true, true, document.defaultView, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+
+// fire the event
+btn.dispatchEvent(event); // 当把event对象传给dispatchEvent()方法时，这个对象的target属性会自动设置。
+```
+
+#### 模拟键盘事件
+
+DOM3级规定，调用`createEvent()`并传入`"KeyboardEvent"`就可以创建一个键盘事件。返回的事件对象会包含一个`initKeyboardEvent()`方法，这个方法接收下列参数：
+
+- `type`（字符串）：表示要触发的事件类型，如`"keydown"`。
+- `bubbles`（布尔值）：表示事件是否应该冒泡。为精确模拟鼠标事件，应该设置为`true`。
+- `cancelable`（布尔值）：表示事件是否可以取消。为精确模拟鼠标事件，应该设置为`true`。
+- `view`（`AbstractView`）：与事件关联的视图。这个参数几乎总是要设置为`document.defaultView`。
+- `key`（布尔值）：表示按下的键的键码。
+- `location`（整数）：表示按下了哪里的键。0表示默认的主键盘，1表示左，2表示右，3表示数字键盘，4表示移动设备（即虚拟键盘），5表示手柄。
+- `modifiers`（字符串）：空格分隔的修改键列表，如`"Shift"`。
+- `repeat`（整数）：在一行中按了这个键多少次。
+
+```js
+let textbox = document.getElementById("myTextbox"), event;
+
+// 以DOM3级方式创建事件对象
+if (document.implementation.hasFeature("KeyboardEvents", "3.0")) {
+    event = document.createEvent("KeyboardEvent");
+
+    // 这个例子模拟的是按住Shift的同时又按下A键。
+    event.initKeyboardEvent("keydown", true, true, document.defaultView, "a", 0, "Shift", 0); // 初始化事件对象
+}
+
+// 触发事件
+textbox.dispatchEvent(event);
+```
+
+在Firefox中，调用`createEvent()`并传入`"KeyEvents"`就可以创建一个键盘事件。返回的事件对象会包含一个`initKeyEvent()`方法，这个方法接受下列10个参数。
+
+- `type`（字符串）：表示要触发的事件类型，如`"keydown"`。
+- `bubbles`（布尔值）：表示事件是否应该冒泡。为精确模拟鼠标事件，应该设置为`true`。
+- `cancelable`（布尔值）：表示事件是否可以取消。为精确模拟鼠标事件，应该设置为`true`。
+- `view`（`AbstractView`）：与事件关联的视图。这个参数几乎总是要设置为`document.defaultView`。
+- `ctrlKey`（布尔值）：表示是否按下了Ctrl键。默认值为`false`。
+- `altKey`（布尔值）：表示是否按下了Alt键。默认值为`false`。
+- `shiftKey`（布尔值）：表示是否按下了Shift键。默认值为`false`。
+- `metaKey`（布尔值）：表示是否按下了Meta键。默认值为`false`。
+- `keyCode`（整数）：被按下或释放的键的键码。这个参数对`keydown`和`keyup`事件有用，默认值为`0`。
+- `charCode`（整数）：通过按键生成的字符的ASCII编码。这个参数对`keypress`事件有用，默认值为0。
+
+```js
+/*
+在指定的文本框中输入字母A
+*/
+
+// for Firefox only
+let textbox = document.getElementById("myTextbox");
+
+// create event object
+let event = document.createEvent("KeyEvents");
+
+// initialize the event object
+event.initKeyEvent("keydown", true, true, document.defaultView, false, false, true, false, 65, 65);
+
+// fire the event
+textbox.dispatchEvent(event);
+```
+
+#### 模拟其他事件
+
+虽然鼠标事件和键盘事件是在浏览器中最经常模拟的事件，但有时候同样需要模拟HTML事件。
+
+要模拟HTML事件，同样需要先创建一个`event`对象——通过`createEvent("HTMLEvents")`，然后再使用这个对象的`initEvent()`方法来初始化它即可，下面的例子展示了如何在给定目标上模拟`focus`事件：
+
+```js
+let event = document.createEvent("HTMLEvents");
+event.initEvent("focus", true, false);
+target.dispatchEvent(event);
+```
+
+> 浏览器中很少使用变动事件和HTML事件，因为使用它们会受到一些限制。
+
+#### 自定义DOM事件
+
+DOM3级还定义了“自定义事件”。自定义事件不是由DOM原生触发的，它的目的是让开发人员创建自己的事件。
+
+要创建新的自定义事件，可以调用`createEvent("CustomEvent")`。返回的对象有一个名为`initCustomEvent()`的方法，接收如下4个参数。
+
+- `type`（字符串）：触发的事件类型，例如`"keydown"`。
+- `bubbles`（布尔值）：表示事件是否应该冒泡。
+- `cancelable`（布尔值）：表示事件是否可以取消。
+- `detail`（对象）：任意值，保存在`event`对象的`detail`属性中。
+
+可以像分派 (dispatch) 其他事件一样在DOM中分派 (dispatch) 创建的自定义事件对象：
+
+```js
+let div = document.getElementById("myDiv"), event;
+
+div.addEventListener("myevent", (event) => {
+    console.log("DIV: " + event.detail);
+});
+
+document.addEventListener("myevent", (event) => {
+    console.log("DOCUMENT: " + event.detail);
+});
+
+if (document.implementation.hasFeature("CustomEvents", "3.0")) {
+    event = document.createEvent("CustomEvent");
+    event.initCustomEvent("myevent", true, false, "Hello world!");
+    div.dispatchEvent(event);
+}
+```
+
+### 17.6.2 IE中的事件模拟
+
+略
+
