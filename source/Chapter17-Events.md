@@ -1080,3 +1080,106 @@ window.addEventListener("devicemotion", (event) => {
 
 ## 17.5 内存和性能
 
+每当将事件处理程序指定给元素时，运行中的浏览器代码与支持页面交互的JavaScript代码之间就会建立一个连接。这种连接越多，页面执行起来就越慢。在JavaScript中，添加到页面上的事件处理程序数量将直接关系到页面的整体运行性能。导致这一问题的原因是多方面的：
+
+- 首先，每个函数都是对象，都会占用内存；内存中的对象越多，性能就越差。
+- 其次，必须事先指定所有事件处理程序而导致的DOM访问次数，会延迟整个页面的交互就绪时间。
+
+### 17.5.1 事件委托
+
+对“事件处理程序过多”问题的解决方案就是**事件委托**。事件委托利用了事件冒泡，只指定一个事件处理程序，就可以管理某一类型的所有事件。例如，`click`事件会一直冒泡到`document`层次。也就是说，我们可以为整个页面指定一个`onclick`事件处理程序，而不必给每个可单击的元素分别添加事件处理程序。
+
+以下面的HTML代码为例：
+
+```html
+<ul id="myLinks">
+    <li id="goSomewhere">Go somewhere</li>
+    <li id="doSomething">Do something</li>
+    <li id="sayHi">Say hi</li>
+</ul>
+```
+
+其中包含3个被单击后会执行操作的列表项。按照传统的做法，需要像下面这样为它们添加3个事件处理程序：
+
+```js
+let item1 = document.getElementById("goSomewhere");
+let item2 = document.getElementById("doSomething");
+let item3 = document.getElementById("sayHi");
+
+item1.addEventListener("click", (event) => {
+    location.href = "http:// www.wrox.com";
+});
+
+item2.addEventListener("click", (event) => {
+    document.title = "I changed the document's title";
+});
+
+item3.addEventListener("click", (event) => {
+    console.log("hi");
+});
+```
+
+如果在一个复杂的Web应用程序中，对所有可单击的元素都采用这种方式，那么结果就会有数不清的代码用于添加事件处理程序。此时，可以利用事件委托技术解决这个问题。使用事件委托，只需在DOM树中尽量最高的层次上添加一个事件处理程序，如下面的例子所示：
+
+```js
+let list = document.getElementById("myLinks");
+
+/* 
+使用事件委托只为<ul>元素添加了一个onclick事件处理程序
+由于所有列表项都是这个元素的子节点，而且它们的事件会冒泡，所以单击事件最终会被这个函数处理。
+*/
+list.addEventListener("click", (event) => {
+    let target = event.target;  // 事件目标是被单击的列表项
+    switch(target.id) {  // 通过检测id属性来决定采取适当的操作
+        case "doSomething":
+            document.title = "I changed the document's title";
+            break;
+        case "goSomewhere":
+            location.href = "http:// www.wrox.com";
+            break;
+        case "sayHi":
+            console.log("hi");
+            break;
+    }
+});
+```
+
+与前面未使用事件委托的代码比一比，会发现这段代码的事前消耗更低，因为只取得了一个DOM元素，只添加了一个事件处理程序。虽然对用户来说最终的结果相同，但这种技术需要占用的内存更少。所有用到按钮的事件（多数鼠标事件和键盘事件）都适合采用事件委托技术。
+
+**如果可行的话，也可以考虑为`document`对象添加一个事件处理程序，用以处理页面上发生的某种特定类型的事件。这样做与采取传统的做法相比具有如下优点：**
+
+- `document`对象很快就可以访问，而且可以在页面生命周期的任何时点上为它添加事件处理程序（无需等待`DOMContentLoaded`或`load`事件）。换句话说，只要可单击的元素呈现在页面上，就可以立即具备适当的功能。
+- 在页面中设置事件处理程序所需的时间更少。只添加一个事件处理程序所需的DOM引用更少，所花的时间也更少。
+- 整个页面占用的内存空间更少，能够提升整体性能。
+
+**最适合采用事件委托技术的事件包括`click`、`mousedown`、`mouseup`、`keydown`、`keyup`和`keypress`。** 虽然`mouseover`和`mouseout`事件也冒泡，但要适当处理它们并不容易，而且经常需要计算元素的位置。（因为当鼠标从一个元素移到其子节点时，或者当鼠标移出该元素时，都会触发`mouseout`事件。）
+
+### 17.5.2 移除事件处理程序
+
+内存中留有那些过时不用的“空事件处理程序”（dangling event handler），也是造成Web应用程序内存与性能问题的主要原因。
+
+在2种情况下，可能会造成上述问题：
+
+- 第一种情况：就是从文档中移除带有事件处理程序的元素时。如果带有事件处理程序的元素被DOM操作（例如使用`removeChild()`方法、`replaceChild()`方法或`innerHTML`）删除了，那么原来添加到元素中的事件处理程序极有可能无法被当作垃圾回收。
+  - 解决办法：如果你知道某个元素即将被移除，那么最好手工移除事件处理程序。
+- 另一种情况，就是卸载页面的时候。IE8及更早版本在这种情况下是问题最多的浏览器，尽管其他浏览器或多或少也有类似的问题。如果在页面被卸载之前没有清理干净事件处理程序，那它们就会滞留在内存中。每次加载完页面再卸载页面时（可能是在两个页面间来回切换，也可以是单击了“刷新”按钮），内存中滞留的对象数目就会增加，因为事件处理程序占用的内存并没有被释放。
+  - 解决办法：最好的做法是在页面卸载之前，先通过`onunload`事件处理程序移除所有事件处理程序。对这种类似撤销的操作，我们可以把它想象成：只要是通过`onload`事件处理程序添加的东西，最后都要通过`onunload`事件处理程序将它们移除。
+
+如果你知道某个元素即将被移除，那么最好手工移除事件处理程序，如下面的例子所示。
+
+```js
+let btn = document.getElementById("myBtn");
+btn.onclick = function() {
+    // do something
+    
+    btn.onclick = null; // 移除事件处理程序
+    
+    document.getElementById("myDiv").innerHTML = "Processing...";
+};
+```
+
+
+
+## 17.6 模拟事件
+
+### 17.6.1 DOM中的事件模拟
