@@ -208,7 +208,9 @@ document.forms[0].elements[0].blur();
 
 ```js
 /*
-假设有一个文本框，我们只允许用户输入数值。此时，可以利用focus事件修改文本框的背景颜色，以便更清楚地表明这个字段获得了焦点。可以利用blur事件恢复文本框的背景颜色，利用change事件在用户输入了非数值字符时再次修改背景颜色。
+假设有一个文本框，我们只允许用户输入数值。
+此时，可以利用focus事件修改文本框的背景颜色，以便更清楚地表明这个字段获得了焦点。
+可以利用blur事件恢复文本框的背景颜色，利用change事件在用户输入了非数值字符时再次修改背景颜色。
 */
 
 let textbox = document.forms[0].elements[0];
@@ -239,3 +241,141 @@ textbox.addEventListener("change", (event) => {
 
 
 ## 19.2 文本框脚本
+
+在HTML中，有两种方式来表现文本框：
+
+- **使用`<input>`元素的单行文本框** ：必须将`<input>`元素的`type`特性设置为`"text"`。而通过设置`size`特性，可以指定文本框中能够显示的字符数。通过`value`特性，可以设置文本框的初始值，而`maxlength`特性则用于指定文本框可以接受的最大字符数。
+- **使用`<textarea>`的多行文本框** ：与`<input>`元素不同，`<textarea>`的初始值必须要放在`<textarea>`和`</textarea>`之间，并且不能在HTML中给`<textarea>`指定最大字符数。
+
+我们建议读者像上面这样使用`value`属性读取或设置文本框的值，不建议使用标准的DOM方法。换句话说，不要使用`setAttribute()`设置`<input>`元素的`value`特性，也不要去修改`<textarea>`元素的第一个子节点。
+
+### 19.2.1 选择文本
+
+`<input type='text'>`和`<textarea>`两种文本框都支持`select()`方法，这个方法用于选择文本框中的所有文本。在调用`select()`方法时，大多数浏览器（Opera除外）都会将焦点设置到文本框中。这个方法不接受参数，可以在任何时候被调用。
+
+下面代码在获得文本框焦点时选中所有文本：
+
+```js
+let textbox = document.forms[0].elements["textbox1"];
+
+textbox.addEventListener("focus", (event) => {
+    event.target.select();
+});
+```
+
+#### `select`事件
+
+与`select()`方法对应的，是一个`select`事件。在选择了文本框中的文本时，就会触发`select`事件。不过，到底什么时候触发`select`事件，还会因浏览器而异。在IE9+、Opera、Firefox、Chrome和Safari中，只有用户选择了文本（而且要释放鼠标），才会触发`select`事件。另外，在调用`select()`方法时也会触发`select`事件。
+
+```js
+let textbox = document.forms[0].elements["textbox1"];
+
+textbox.addEventListener("select", (event) => {
+    console.log('Text selected: ${textbox.value}');
+});
+```
+
+#### 取得选择的文本
+
+HTML5添加两个属性以便取得选择的文本：
+
+- **`selectionStart`属性** ：被选择文本开头索引；
+- **`selectionEnd`属性** ：被选择文本的结尾索引；
+
+这两个属性中保存的是基于0的索引数值，表示所选择文本的范围（即文本选区开头和结尾的偏移量）。
+
+要取得用户在文本框中选择的文本，可以使用如下代码：
+
+```js
+function getSelectedText(textbox){
+    return textbox.value.substring(textbox.selectionStart, textbox.selectionEnd);
+}
+```
+
+下面代码在选择事件被触发时返回被选择的文本：
+```js
+let textbox = document.forms[0].elements["textbox1"];
+textbox.addEventListener("select", (event) => {
+    selectedText = event.target.value.substring(event.target.selectionStart, event.target.selectionEnd);
+    console.log(selecetedText);
+});
+```
+
+#### 选择部分文本
+
+**`setSelectionRange()`方法** ：为了选择文本框中的部分文本，HTML5为文本框引入了`setSelectionRange()`方法。这个方法接收2个参数：要选择的第一个字符的索引和要选择的最后一个字符之后的字符的索引（类似于`substring()`方法的2个参数）。要看到选择的文本，必须在调用`setSelectionRange()`之前或之后立即将焦点设置到文本框。
+
+```js
+textbox.value = "Hello world!"
+
+// select all text
+textbox.setSelectionRange(0, textbox.value.length); // "Hello world!"
+
+// select first three characters
+textbox.setSelectionRange(0, 3); // "Hel"
+
+// select characters 4 through 6
+textbox.setSelectionRange(4, 7); // "o w"
+```
+
+### 19.2.2 过滤输入
+
+由于文本框在默认情况下没有提供多少验证数据的手段，因此必须使用JavaScript来完成此类过滤输入的操作。而综合运用事件和DOM手段，就可以将普通的文本框转换成能够理解用户输入数据的功能型控件。
+
+#### 屏蔽字符
+
+有时候，我们需要用户输入的文本中包含或不包含某些字符。如前所述，响应向文本框中插入字符操作的是`keypress`事件。因此，可以通过阻止这个事件的默认行为来屏蔽此类字符。
+
+在极端的情况下，可以通过下列代码屏蔽所有按键操作：
+
+```js
+textbox.addEventListener("keypress", (event) => {
+    event.preventDefault(); // 所有按键操作都将被屏蔽，导致文本框变成只读的.
+});
+```
+
+如果只想屏蔽特定的字符，则需要检测`keypress`事件对应的字符编码，然后再决定如何响应。例如，下列代码只允许用户输入数值：
+
+```js
+/*
+以下代码只能拦截英文字符，不能拦截输入法输入的中文字符
+*/
+textbox.addEventListener("keypress", (event) => {
+    if (!/\d/.test(String.fromCharCode(event.charCode))){
+        event.preventDefault();
+    }
+});
+```
+
+以下代码屏蔽非数值字符，但不屏蔽那些也会触发`keypress`事件的基本按键（包括Ctrl键）：
+
+```js
+textbox.addEventListener("keypress", (event) => {
+    if (!/\d/.test(String.fromCharCode(event.charCode)) && event.charCode > 9 && !event.ctrlKey){
+        event.preventDefault();
+    }
+});
+```
+
+#### 操作剪贴板
+
+HTML 5也把剪贴板事件纳入了规范，包含下列6个剪贴板事件：
+
+- `beforecopy`：在发生复制操作前触发。
+- `copy`：在发生复制操作时触发。
+- `beforecut`：在发生剪切操作前触发。
+- `cut`：在发生剪切操作时触发。
+- `beforepaste`：在发生粘贴操作前触发。
+- `paste`：在发生粘贴操作时触发。
+
+由于没有针对剪贴板操作的标准，这些事件及相关对象会因浏览器而异。
+
+在实际的事件发生之前，通过`beforecopy`、`beforecut`和`beforepaste`事件可以在向剪贴板发送数据，或者从剪贴板取得数据之前修改数据。不过，取消这些事件并不会取消对剪贴板的操作——只有取消`copy`、`cut`和`paste`事件，才能阻止相应操作发生。
+
+**`clipboardData`对象** ：使用`clipboardData`对象可以访问剪贴板中的数据。在IE中，这个对象是`window`对象的属性；而在Firefox、Safari和Chrome中，这个对象是相应`event`对象的属性。但是，在Firefox、Safari和Chorme中，只有在处理剪贴板事件期间`clipboardData`对象才有效，这是为了防止对剪贴板的未授权访问；在IE中，则可以随时访问`clipboardData`对象。为了确保跨浏览器兼容性，最好只在发生剪贴板事件期间使用这个对象。
+
+**`clipboardData`对象**有三个方法：
+
+- **`getData()`方法** ：`getData()`用于从剪贴板中取得数据，它接受一个参数，即要取得的数据的格式。在IE中，有两种数据格式：`"text"`和`"URL"`。在Firefox、Safari和Chrome中，这个参数是一种MIME类型；不过，可以用`"text"`代表`"text/plain"`。
+- **`setData()`方法** ：
+- **`clearData()`方法** ：

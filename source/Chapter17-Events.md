@@ -737,7 +737,7 @@ DOM3级事件中的键盘事件，不再包含`charCode`属性，而是包含两
 
 “DOM3级事件”规范中引入了一个新事件，名叫`textInput`。根据规范，当用户在可编辑区域中输入字符时，就会触发这个事件。
 
-`keypress`事件与`textInput`事件的区别在于：
+**`keypress`事件与`textInput`事件的区别在于：**
 
 - 任何可以获得焦点的元素都可以触发`keypress`事件，但只有可编辑区域才能触发`textInput`事件。
 - `textInput`事件只会在用户按下能够输入实际字符的键时才会被触发，而`keypress`事件则在按下那些能够影响文本显示的键时也会触发（例如退格键）。
@@ -788,12 +788,15 @@ IME（Input Method Editor，输入法编辑器）可以让用户输入在物理�
 
 ```js
 let textbox = document.getElementById("myText");
+
 textbox.addEventListener("compositionstart", (event) => {
     console.log(event.data);
 });
+
 textbox.addEventListener("compositionupdate", (event) => {
     console.log(event.data);
 });
+
 textbox.addEventListener("compositionend", (event) => {
     console.log(event.data);
 });
