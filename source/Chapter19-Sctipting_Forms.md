@@ -376,6 +376,197 @@ HTML 5也把剪贴板事件纳入了规范，包含下列6个剪贴板事件：
 
 **`clipboardData`对象**有三个方法：
 
-- **`getData()`方法** ：`getData()`用于从剪贴板中取得数据，它接受一个参数，即要取得的数据的格式。在IE中，有两种数据格式：`"text"`和`"URL"`。在Firefox、Safari和Chrome中，这个参数是一种MIME类型；不过，可以用`"text"`代表`"text/plain"`。
-- **`setData()`方法** ：
-- **`clearData()`方法** ：
+- **`getData()`方法** ：`getData()`用于从剪贴板中取得数据，它接受一个参数，即要取得的数据的格式。在IE中，有两种数据格式：`"text"`和`"URL"`。在Firefox、Safari和Chrome中，这个参数是一种MIME类型。
+- **`setData()`方法** ：`setData()`方法的第一个参数也是数据类型，第二个参数是要放在剪贴板中的文本。对于第一个参数，IE照样支持`"text"`和`"URL"`，而Safari和Chrome仍然只支持MIME类型。这两个浏览器在成功将文本放到剪贴板中后，都会返回`true`；否则，返回`false`。
+- **`clearData()`方法**
+
+以下代码对`getData()`和`setData()`实现了跨浏览器的封装：
+
+```js
+function getClipboardText(event){
+    var clipboardData = (event.clipboardData || window.clipboardData);
+    return clipboardData.getData("text");
+}
+
+function setClipboardText (event, value){
+    if (event.clipboardData){
+        return event.clipboardData.setData("text/plain", value);
+    } else if (window.clipboardData){
+        return window.clipboardData.setData("text", value);
+    }
+}
+```
+
+在`paste`事件中，可以确定剪贴板中的值是否有效，如果无效，就可以像下面示例中那样，取消默认的行为：
+
+```js
+textbox.addEventListener("paste", (event) => {
+    let text = getClipboardText(event);
+    if (!/^\d*$/.test(text)){
+        event.preventDefault();
+    }
+});
+```
+
+### 19.2.3 自动切换焦点
+
+为增强易用性，同时加快数据输入，可以在前一个文本框中的字符达到最大数量后，自动将焦点切换到下一个文本框。换句话说，用户在第一个文本框中输入了3个数字之后，焦点就会切换到第二个文本框，再输入3个数字，焦点又会切换到第三个文本框。这种“自动切换焦点”的功能，可以通过下列代码实现：
+
+```html
+<input type="text" name="tel1" id="txtTel1" maxlength="3">
+<input type="text" name="tel2" id="txtTel2" maxlength="3">
+<input type="text" name="tel3" id="txtTel3" maxlength="4">
+
+<script>
+function tabForward(event){
+    let target = event.target;
+    if (target.value.length == target.maxLength){
+        let form = target.form;
+        for (let i = 0, len = form.elements.length; i < len; i++) {
+            if (form.elements[i] == target) {
+                if (form.elements[i+1]) {
+                    form.elements[i+1].focus();
+                }
+                return;
+            }
+        }
+    }
+}
+    
+let inputIds = ["txtTel1", "txtTel2", "txtTel3"];
+    
+for (let id of inputIds) {
+	let textbox = document.getElementById(id);
+	textbox.addEventListener("keyup", tabForward);
+}
+    
+let textbox1 = document.getElementById("txtTel1");
+let textbox2 = document.getElementById("txtTel2");
+let textbox3 = document.getElementById("txtTel3");
+</script>
+```
+
+### 19.2.4 HTML5约束验证API
+
+为了在将表单提交到服务器之前验证数据，HTML5新增了一些功能。
+
+#### 必填字段
+
+第一种情况是在表单字段中指定了`required`属性，如下面的例子所示：
+
+```html
+<input type="text" name="username" required>
+```
+
+#### 其他输入类型
+
+HTML5为`<input>`元素的`type`属性又增加了几个值。这些新的类型不仅能反映数据类型的信息，而且还能提供一些默认的验证功能。其中，`"email"`和`"url"`是两个得到支持最多的类型，各浏览器也都为它们增加了定制的验证机制：
+
+- `"email"`类型要求输入的文本必须符合电子邮件地址的模式；
+- `"url"`类型要求输入的文本必须符合URL的模式。
+
+```html
+<input type="email" name ="email">
+<input type="url" name="homepage">
+```
+
+#### 数值范围
+
+除了`"email"`和`"url"`，HTML5还定义了另外几个输入元素。这几个元素都要求填写某种基于数字的值：`"number"`、`"range"`、`"datetime"`、`"datetime-local"`、`"date"`、`"month"`、`"week"`，还有`"time"`。
+
+对所有这些数值类型的输入元素，可以指定`min`属性（最小的可能值）、`max`属性（最大的可能值）和`step`属性（从`min`到`max`的两个刻度间的差值）。例如，想让用户只能输入0到100的值，而且这个值必须是5的倍数，可以这样写代码：
+
+```html
+<input type="number" min="0" max="100" step="5" name="count">
+```
+
+以上这些属性在JavaScript中都能通过对应的元素访问（或修改）。此外，还有2个方法：
+
+- `stepUp()`方法
+- `stepDown()`方法
+
+这两个方法都接收一个可选的参数：要在当前值基础上加上或减去的数值。（默认是加或减1。）
+
+这两个方法还没有得到任何浏览器支持，但下面的例子演示了它们的用法：
+
+```js
+input.stepUp();     //加1
+input.stepUp(5);    //加5
+input.stepDown();   //减1
+input.stepDown(10); //减10
+```
+
+#### 输入模式
+
+HTML5为文本字段新增了`pattern`属性。这个属性的值是一个正则表达式，用于匹配文本框中的值。例如，如果只想允许在文本字段中输入数值，可以像下面的代码一样应用约束：
+
+```html
+<input type="text" pattern="\d+" name="count">
+```
+
+注意，模式的开头和末尾不用加`^`和`$`符号（假定已经有了）。这两个符号表示输入的值必须从头到尾都与模式匹配。
+
+#### 检测有效性
+
+**`checkValidity()`方法** ：使用`checkValidity()`方法可以检测表单中的某个字段是否有效。所有表单字段都有个方法，如果字段的值有效，这个方法返回`true`，否则返回`false`。字段的值是否有效的判断依据是本节前面介绍过的那些约束。换句话说，必填字段中如果没有值就是无效的，而字段中的值与`pattern`属性不匹配也是无效的。例如：
+
+```js
+if (document.forms[0].elements[0].checkValidity()){
+    //字段有效，继续 
+} else {
+    //字段无效
+}
+```
+
+要检测整个表单是否有效，可以在表单自身调用`checkValidity()`方法。如果所有表单字段都有效，这个方法返回`true`；即使有一个字段无效，这个方法也会返回`false`。
+
+```js
+if(document.forms[0].checkValidity()){
+    //表单有效，继续
+} else {
+    //表单无效
+}
+```
+
+**`validity`属性** ：会告诉你为什么字段有效或无效。这个对象中包含一系列属性，每个属性会返回一个布尔值：
+
+- `customError`：如果设置了`setCustomValidity()`，则为`true`，否则返回`false`。
+- `patternMismatch`：如果值与指定的`pattern`属性不匹配，返回`true`。
+- `rangeOverflow`：如果值比`max`值大，返回`true`。
+- `rangeUnderflow`：如果值比`min`值小，返回`true`。
+- `stepMisMatch`：如果`min`和`max`之间的步长值不合理，返回`true`。
+- `tooLong`：如果值的长度超过了`maxlength`属性指定的长度，返回`true`。有的浏览器（如Firefox 4）会自动约束字符数量，因此这个值可能永远都返回`false`。
+- `typeMismatch`：如果值不是`"mail"`或`"url"`要求的格式，返回`true`。
+- `valid`：如果这里的其他属性都是`false`，返回`true`。`checkValidity()`也要求相同的值。
+- `valueMissing`：如果标注为`required`的字段中没有值，返回`true`。
+
+#### 禁用验证
+
+通过设置`novalidate`属性，可以告诉表单不进行验证：
+
+```html
+<form method="post" action="signup.php" novalidate>
+    <!--这里插入表单元素--> 
+</form>
+```
+
+在JavaScript中使用`noValidate`属性可以取得或设置这个值，如果这个属性存在，值为`true`，如果不存在，值为`false`。
+
+```js
+document.forms[0].noValidate = true; //禁用验证
+```
+
+如果一个表单中有多个提交按钮，为了指定点击某个提交按钮不必验证表单，可以在相应的按钮上添加`formnovalidate`属性。
+
+```html
+<form method="post" action="foo.php">
+    <!--这里插入表单元素--> 
+    <input type="submit" value="Regular Submit">
+    <input type="submit" formnovalidate name="btnNoValidate"
+        value="Non-validating Submit">
+</form>
+```
+
+
+
+## 19.3 选择框脚本
