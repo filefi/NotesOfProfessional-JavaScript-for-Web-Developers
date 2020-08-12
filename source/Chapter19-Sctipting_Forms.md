@@ -570,3 +570,229 @@ document.forms[0].noValidate = true; //禁用验证
 
 
 ## 19.3 选择框脚本
+
+选择框是通过`<select>`和`<option>`元素创建的。为了方便与这个控件交互，除了所有表单字段共有的属性和方法外，`HTMLSelectElement`类型还提供了下列属性和方法：
+
+- `add(newOption, relOption)`：向控件中插入新`<option>`元素，其位置在相关项（`relOption`）之前。
+- `multiple`：布尔值，表示是否允许多项选择；等价于HTML中的`multiple`特性。
+- `options`：控件中所有`<option>`元素的`HTMLCollection`。
+- `remove(index)`：移除给定位置的选项。
+- `selectedIndex`：基于0的选中项的索引，如果没有选中项，则值为`-1`。对于支持多选的控件，只保存选中项中第一项的索引。
+- `size`：选择框中可见的行数；等价于HTML中的`size`特性。
+- `type`属性：不是`"select-one"`，就是`"select-multiple"`，这取决于HTML代码中有没有`multiple`特性。
+- `value`属性：由当前选中项决定，相应规则如下：
+  - 如果没有选中的项，则选择框的`value`属性保存空字符串。
+  - 如果有一个选中项，而且该项的`value`特性已经在HTML中指定，则选择框的`value`属性等于选中项的`value`特性。即使`value`特性的值是空字符串，也同样遵循此条规则。
+  - 如果有一个选中项，但该项的`value`特性在HTML中未指定，则选择框的`value`属性等于该项的文本。
+  - 如果有多个选中项，则选择框的`value`属性将依据前两条规则取得第一个选中项的值。
+
+在DOM中，每个`<option>`元素都有一个`HTMLOptionElement`对象表示。为便于访问数据，`HTMLOptionElement`对象添加了下列属性：
+
+- `index`：当前选项在`options`集合中的索引。
+- `label`：当前选项的标签；等价于HTML中的`label`特性。
+- `selected`：布尔值，表示当前选项是否被选中。将这个属性设置为`true`可以选中当前选项。
+- `text`：选项的文本。
+- `value`：选项的值（等价于HTML中的`value`特性）。
+
+在操作选项时，我们建议最好是使用特定于选项的属性，因为所有浏览器都支持这些属性。在将表单控件作为DOM节点的情况下，实际的交互方式则会因浏览器而异。我们不推荐使用标准DOM技术修改`<option>`元素的文本或者值。
+
+最后，我们还想提醒读者注意一点：选择框的`change`事件与其他表单字段的`change`事件触发的条件不一样。其他表单字段的`change`事件是在值被修改且焦点离开当前字段时触发，而选择框的`change`事件只要选中了选项就会触发。
+
+### 19.3.1 选择选项
+
+对于只允许选择一项的选择框，访问选中项的最简单方式，就是使用选择框的`selectedIndex`属性，如下面的例子所示：
+
+```js
+let selectedOption = selectbox.options[selectbox.selectedIndex];
+```
+
+取得选中项之后，可以像下面这样显示该选项的索引、文本和值：
+
+```js
+let selectedIndex = selectbox.selectedIndex;
+let selectedOption = selectbox.options[selectedIndex];
+console.log('Selected index: $[selectedIndex}\n' +
+            'Selected text: ${selectedOption.text}\n' +
+            'Selected value: ${selectedOption.value}');
+```
+
+与`selectedIndex`不同，在允许多选的选择框中设置选项的`selected`属性，不会取消对其他选中项的选择，因而可以动态选中任意多个项。`selected`属性的使用方式就是：取得对某一项的引用，然后将其`selected`属性设置为`true`。例如，下面的代码会选中选择框中的第一项：
+
+```js
+selectbox.options[0].selected = true;
+```
+
+但是，如果是在单选选择框中，修改某个选项的`selected`属性则会取消对其他选项的选择。需要注意的是，将`selected`属性设置为`false`对单选选择框没有影响。
+
+要取得所有选中的项，可以循环遍历选项集合，然后测试每个选项的`selected`属性。来看下面的例子：
+
+```js
+function getSelectedOptions(selectbox){
+    let result = new Array();
+    for (let option of selectbox.options) {
+        if (option.selected) {
+            result.push(option);
+        }
+    }
+    return result;
+}
+```
+
+### 19.3.2 添加选项
+
+可以使用JavaScript动态创建选项，并将它们添加到选择框中。添加选项的方式有很多，常用的有3中：
+
+- 使用DOM方法。
+- 使用`Option`构造函数来创建新选项。
+- 使用选择框的`add()`方法。
+
+```js
+/*使用DOM方法*/
+
+let newOption = document.createElement("option");  // 创建了一个新的<option>元素
+newOption.appendChild(document.createTextNode("Option text")); // 为它添加了一个文本节点
+newOption.setAttribute("value", "Option value");  // 设置其value特性
+selectbox.appendChild(newOption); // 将它添加到了选择框中
+```
+
+```js
+/*使用Option构造函数来创建新选项*/
+
+let newOption = new Option("Option text", "Option value");
+selectbox.appendChild(newOption);     //在IE8及之前版本中有问题
+```
+
+```js
+/*使用选择框的add()方法*/
+
+var newOption = new Option("Option text", "Option value");
+selectbox.add(newOption, undefined); // 第二个参数传入undefined，可以在所有浏览器中都将新选项插入到列表最后
+```
+
+### 19.3.3 移除选项
+
+移除选项的方式也有很多种，常见的有：
+
+- 使用DOM的`removeChild()`方法，为其传入要移除的选项。
+- 使用选择框的`remove()`方法。这个方法接受一个参数，即要移除选项的索引。
+- 将相应选项设置为`null`。
+
+```js
+/*使用DOM的removeChild()方法，为其传入要移除的选项。*/
+selectbox.removeChild(selectbox.options[0]);     //移除第一个选项
+```
+
+```js
+/*使用选择框的remove()方法。这个方法接受一个参数，即要移除选项的索引。*/
+selectbox.remove(0);     //移除第一个选项
+```
+
+```js
+/*将相应选项设置为null。*/
+selectbox.options[0] = null;    //移除第一个选项
+```
+
+要清除选择框中所有的项，需要迭代所有选项并逐个移除它们，如下面的例子所示：
+
+```js
+function clearSelectbox(selectbox) {
+    for (let option of selectbox.options) {
+        selectbox.remove(0);
+    }
+}
+```
+
+#### 19.3.4 移动和重排选项
+
+使用DOM的`appendChild()`方法，可以方便的移动。如果为`appendChild()`方法传入一个文档中已有的元素，那么就会先从该元素的父节点中移除它，再把它添加到指定的位置。
+
+```js
+/*将第一个选择框中的第一个选项移动到第二个选择框中*/
+
+let selectbox1 = document.getElementById("selLocations1");
+let selectbox2 = document.getElementById("selLocations2");
+selectbox2.appendChild(selectbox1.options[0]);
+```
+
+使用`insertBefore()`方法可以方便地将选择框中的某一项移动到特定位置：
+
+```js
+/*在选择框中向前移动一个选项的位置*/
+
+let optionToMove = selectbox.options[1];
+selectbox.insertBefore(optionToMove, selectbox.options[optionToMove.index-1]);
+```
+
+```js
+/*将选择框中的选项向后移动一个位置*/
+
+let optionToMove = selectbox.options[1];
+selectbox.insertBefore(optionToMove, selectbox.options[optionToMove.index+2]);
+```
+
+
+
+## 19.4 表单序列化
+
+**在表单提交期间，浏览器将数据发送给服务器时会进行以下步骤：**
+
+- 对表单字段的名称和值进行URL编码，使用和号（&）分隔。
+- 不发送禁用的表单字段。
+- 只发送勾选的复选框和单选按钮。
+- 不发送`type`为`"reset"`和`"button"`的按钮。
+- 多选选择框中的每个选中的值单独一个条目。
+- 在单击提交按钮提交表单的情况下，也会发送提交按钮；否则，不发送提交按钮。也包括`type`为`"image"`的`<input>`元素。
+- `<select>`元素的值，就是选中的`<option>`元素的`value`特性的值。如果`<option>`元素没有`value`特性，则是`<option>`元素的文本值。
+
+在JavaScript中，可以利用表单字段的`type`属性，连同`name`和`value`属性一起实现对表单的序列化。
+
+```js
+function serialize(form) {
+    let parts = [];
+    let optValue;
+    for (let field of form.elements) {
+        switch (field.type) {
+            case "select-one":
+            case "select-multiple":
+                if (field.name.length) {
+                    for (let option of field.options) {
+                        if (option.selected) {
+                            if (option.hasAttribute) {
+                                optValue = (option.hasAttribute("value") ?
+                                    option.value : option.text);
+                            } else {
+                                optValue = (option.attributes["value"].specified ?
+                                    option.value : option.text);
+                            }
+                            parts.push(encodeURIComponent(field.name)
+                                } + "=" +
+                                encodeURIComponent(optValue));
+                    }
+                }
+        }
+        break;
+        case undefined: // fieldset
+            case "file": // file input
+            case "submit": // submit button
+            case "reset": // reset button
+            case "button": // custom button
+            break;
+        case "radio": // radio button
+        case "checkbox": // checkbox
+        if (!field.checked) {
+            break;
+        }
+        default:
+        // don't include form fields without names
+        if (field.name.length) {
+            parts.push('${encodeURIComponent(field.name)}=' +
+                '${encodeURIComponent(field.value)}');
+        }
+    }
+    return parts.join("&");
+}
+```
+
+
+
+## 19.5 富文本编辑
