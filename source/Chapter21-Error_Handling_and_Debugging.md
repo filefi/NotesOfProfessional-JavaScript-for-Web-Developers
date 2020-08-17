@@ -86,3 +86,67 @@ try {
 使用`try-catch`最适合处理那些我们无法控制的错误。在明确知道自己的代码会发生错误时，再使用`try-catch`语句就不太合适了。在这种情况下，不应用使用`try-catch`语句。
 
 ### 21.2.2 抛出错误
+
+与`try-catch`语句相配的还有一个`throw`操作符，用于随时抛出自定义错误。在遇到`throw`操作符时，代码会立即停止执行。仅当有`try-catch`语句捕获到被抛出的值时，代码才会继续执行。
+
+抛出错误时，必须要给`throw`操作符指定一个值，这个值是什么类型，没有要求。下列代码都是有效的：
+
+```js
+throw 12345;
+throw "Hello world!";
+throw true;
+throw { name: "JavaScript"};
+```
+
+通过使用某种内置错误类型，可以更真实地模拟浏览器错误。每种错误类型的构造函数接收一个参数，即实际的错误消息。下面是一个例子：
+
+```js
+throw new Error("Something bad happened.");   // 这行代码抛出了一个通用错误，带有一条自定义错误消息。
+
+throw new SyntaxError("I don’t like your syntax.");
+throw new TypeError("What type of variable do you take me for?");
+throw new RangeError("Sorry, you just don’t have the range.");
+throw new EvalError("That doesn’t evaluate.");
+throw new URIError("Uri, is that you?");
+throw new ReferenceError("You didn’t cite your references properly.");
+```
+
+另外，利用原型链还可以通过继承`Error`来创建自定义错误类型。此时，需要为新创建的错误类型指定`name`和`message`属性。来看一个例子：
+
+```js
+class CustomError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = "CustomError";
+        this.message = message;
+    }
+}
+
+throw new CustomError("My message");
+```
+
+浏览器对待继承自`Error`的自定义错误类型，就像对待其他错误类型一样。如果要捕获自己抛出的错误并且把它与浏览器错误区别对待的话，创建自定义错误是很有用的。
+
+#### 抛出错误的时机
+
+应该在出现某种特定的已知错误条件，导致函数无法正常执行时抛出错误。换句话说，浏览器会在某种特定的条件下执行函数时抛出错误。例如，下面的函数会在参数不是数组的情况下会抛出异常：
+
+```js
+function process(values){
+    if (!(values instanceof Array)){
+        throw new Error("process(): Argument must be an array.");
+    }
+    values.sort();
+    for (let value of values){
+        if (value > 100){
+            return value;
+        }
+    }
+    return -1;
+}
+```
+
+#### 抛出错误VS使用`try-catch`
+
+我们认为只应该捕获那些你确切地知道该如何处理的错误。捕获错误的目的在于避免浏览器以默认方式处理它们；而抛出错误的目的在于提供错误发生具体原因的消息。
+
