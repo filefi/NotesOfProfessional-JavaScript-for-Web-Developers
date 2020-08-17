@@ -796,3 +796,71 @@ function serialize(form) {
 
 
 ## 19.5 富文本编辑
+
+虽然也没有富文本编辑的规范，但已经出现了事实标准。而且，IE、Opera、Safari、Chrome和Firefox都已经支持这一功能。这一技术的本质，就是在页面中嵌入一个包含空HTML页面的`iframe`。通过设置`designMode`属性，这个空白的HTML页面可以被编辑，而编辑对象则是该页面`<body>`元素的HTML代码。`designMode`属性有两个可能的值：`"off"`（默认值）和`"on"`。在设置为`"on"`时，整个文档都会变得可以编辑（显示插入符号），然后就可以像使用字处理软件一样，通过键盘将文本内容加粗、变成斜体，等等。
+
+### 19.5.1 使用`contenteditable`属性
+
+另一种编辑富文本内容的方式是使用名为`contenteditable`的特殊属性。可以把`contenteditable`属性应用给页面中的任何元素，然后用户立即就可以编辑该元素。这种方法之所以受到欢迎，是因为它不需要`iframe`、空白页和JavaScript，只要为元素设置`contenteditable`属性即可。
+
+```html
+<div class="editable" id="richedit" contenteditable></div>
+```
+
+通过在这个元素上设置`contenteditable`属性，也能打开或关闭编辑模式。`contenteditable`属性有三个可能的值：`"true"`表示打开、`"false"`表示关闭，`"inherit"`表示从父元素那里继承（因为可以在`contenteditable`元素中创建或删除元素）。
+
+```js
+let div = document.getElementById("richedit");
+div.contentEditable = "true";
+```
+
+### 19.5.2 操作富文本
+
+与富文本编辑器交互的主要方式，就是使用`document.execCommand()`。这个方法可以对文档执行预定义的命令，而且可以应用大多数格式。可以为`document.execCommand()`方法传递3个参数：要执行的命令名称、表示浏览器是否应该为当前命令提供用户界面的一个布尔值和执行命令必须的一个值（如果不需要值，则传递`null`）。为了确保跨浏览器的兼容性，第二个参数应该始终设置为`false`，因为Firefox会在该参数为`true`时抛出错误。
+
+### 19.5.3 富文本选区
+
+在富文本编辑器中，使用框架（`iframe`）的`getSelection()`方法，可以确定实际选择的文本。这个方法是`window`对象和`document`对象的属性，调用它会返回一个表示当前选择文本的`Selection`对象。每个`Selection`对象都有下列属性。
+
+- `anchorNode`：选区起点所在的节点。
+- `anchorOffset`：在到达选区起点位置之前跳过的anchorNode中的字符数量。
+- `focusNode`：选区终点所在的节点。
+- `focusOffset`：`focusNode`中包含在选区之内的字符数量。
+- `isCollapsed`：布尔值，表示选区的起点和终点是否重合。
+- `rangeCount`：选区中包含的DOM范围的数量。
+
+`Selection`对象的这些属性并没有包含多少有用的信息。好在，该对象的下列方法提供了更多信息，并且支持对选区的操作。
+
+- `addRange(range)`：将指定的DOM范围添加到选区中。
+- `collapse(node, offset)`：将选区折叠到指定节点中的相应的文本偏移位置。
+- `collapseToEnd()`：将选区折叠到终点位置。
+- `collapseToStart()`：将选区折叠到起点位置。
+- `containsNode(node)`：确定指定的节点是否包含在选区中。
+- `deleteFromDocument()`：从文档中删除选区中的文本，与`document.execCommand("delete", false, null)`命令的结果相同。
+- `extend(node, offset)`：通过将`focusNode`和`focusOffset`移动到指定的值来扩展选区。
+- `getRangeAt(index)`：返回索引对应的选区中的DOM范围。
+- `removeAllRanges()`：从选区中移除所有DOM范围。实际上，这样会移除选区，因为选区中至少要有一个范围。
+- `reomveRange(range)`：从选区中移除指定的DOM范围。
+- `selectAllChildren(node)`：清除选区并选择指定节点的所有子节点。
+- `toString()`：返回选区所包含的文本内容。
+
+### 19.5.4 表单与富文本
+
+由于富文本编辑是使用`iframe`而非表单控件实现的，因此从技术上说，富文本编辑器并不属于表单。换句话说，富文本编辑器中的HTML不会被自动提交给服务器，而需要我们手工来提取并提交HTML。为此，通常可以添加一个隐藏的表单字段，让它的值等于从`iframe`中提取出的HTML。
+
+```js
+form.addEventListener("submit", (event) => {
+    let target = event.target;
+    target.elements["comments"].value =
+    	frames["richedit"].document.body.innerHTML; // 通过文档主体的innerHTML属性取得了iframe中的HTML
+});
+```
+
+对于`contenteditable`元素，也可以执行类似操作。
+
+```js
+form.addEventListener("submit", (event) => {
+    let target = event.target;
+    target.elements["comments"].value = document.getElementById("richedit").innerHTML;
+});
+```
