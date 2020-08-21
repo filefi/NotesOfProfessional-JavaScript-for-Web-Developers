@@ -19,7 +19,8 @@ let xhr = new XMLHttpRequest();
 1. 创建XHR对象`let xhr = new XMLHttpRequest();`
 2. 调用`open()`方法以创建一个请求（但不会实际发送请求）；
 3. 使用`setRequestHeader()`方法设置自定义的请求头部信息。*此为可选步骤。*
-4. 调用`send()`方法发送请求；
+4.  使用`overrideMimeType()`方法，用于重写XHR响应的MIME类型。*此为可选步骤。*
+5. 调用`send()`方法发送请求；
 
 
 
@@ -29,8 +30,11 @@ let xhr = new XMLHttpRequest();
 2. 为XHR对象创建`onreadystatechange`事件处理程序，以监听XHR对象的`readyState`状态；
 3. 调用`open()`方法以创建一个请求（但不会实际发送请求）；
 4. 使用`setRequestHeader()`方法设置自定义的请求头部信息。*此为可选步骤。*
-5. 调用`send()`方法发送请求；
-6. 如果需要，可以使用`abort()`方法取消异步请求。在终止异步请求后，应该对XHR对象进行解引用操作`xhr = null;`。*此为可选步骤。*
+5.  使用`overrideMimeType()`方法，用于重写XHR响应的MIME类型。*此为可选步骤。*
+6. 使用`timeout`属性，设置请求在等待响应多少毫秒之后就终止。*此为可选步骤。*
+7. 如果`timeout`属性被设置，当请求超时，会触发XHR对象的`ontimeout`事件，可以为XHR对象创建`ontimeout`事件处理程序。*此为可选步骤。*
+8. 调用`send()`方法发送请求；
+9. 如果需要，可以使用`abort()`方法取消异步请求。在终止异步请求后，应该对XHR对象进行解引用操作`xhr = null;`。*此为可选步骤。*
 
 
 
@@ -264,9 +268,56 @@ xhr.send(new FormData(form));
 
 ### 24.2.2 超时设定
 
+XHR对象的`timeout`属性，表示请求在等待响应多少毫秒之后就终止。在给`timeout`设置一个数值后，如果在规定的时间内浏览器还没有接收到响应，那么就会触发`timeout`事件，进而会调用`ontimeout`事件处理程序。
+
+```js
+let xhr = new XMLHttpRequest();
+
+xhr.onreadystatechange = function() {
+    if (xhr.readyState == 4) {
+        // 在xhr超时终止时，readyState可能已经改变为4了，这意味着会调用onreadystatechange事件处理程序。
+        // 如果在超时终止请求之后再访问status属性，就会导致错误。
+        // 为避免浏览器报告错误，可以将检查status属性的语句封装在一个try-catch语句当中。
+        try {
+            if ((xhr.status >= 200 && xhr.status < 300) || xhr.status == 304) {
+                alert(xhr.responseText);
+            } else {
+                alert("Request was unsuccessful: " + xhr.status);
+            }
+        } catch (ex) {
+        	// 假设由ontimeout事件处理程序处理
+        }
+    }
+};
+
+xhr.open("get", "timeout.php", true);
+
+// 将超时设置为1000毫秒
+xhr.timeout = 1000; // 如果请求在1秒钟内还没有返回，就会自动终止。
+
+// 请求终止时，会调用ontimeout事件处理程序。
+xhr.ontimeout = function() {
+    alert("Request did not return in a second.");
+};
+
+xhr.send(null);
+```
+
 
 
 ### 24.2.3 `overrideMimeType()`方法
+
+**`overrideMimeType()`方法** 用于重写XHR响应的MIME类型。因为返回响应的MIME类型决定了XHR对象如何处理它，所以提供一种方法能够重写服务器返回的MIME类型是很有用的。
+
+服务器返回的MIME类型是`text/plain`，但数据中实际包含的是XML。根据MIME类型，即使数据是XML，`responseXML`属性中仍然是`null`。通过调用`overrideMimeType()`方法，可以保证把响应当作XML而非纯文本来处理。
+
+```js
+let xhr = new XMLHttpRequest();
+xhr.open("get", "text.php", true);
+// 强迫XHR对象将响应当作XML而非纯文本来处理。
+xhr.overrideMimeType("text/xml"); // overrideMimeType()方法必须在发送请求前调用
+xhr.send(null);
+```
 
 
 
