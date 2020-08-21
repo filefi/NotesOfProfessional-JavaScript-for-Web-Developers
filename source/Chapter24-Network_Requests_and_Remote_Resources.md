@@ -186,17 +186,85 @@ xhr.open("get", "example.php?name1=value1&name2=value2", true);
 
 ### 24.1.4 `POST`请求
 
+`POST`请求应该把数据作为请求的主体提交。`POST`请求的主体可以包含非常多的数据，而且格式不限。在`open()`方法第一个参数的位置传入`"post"`，就可以初始化一个`POST`请求，如下面的例子所示：
 
+```js
+xhr.open("post", "example.php", true);
+```
+
+发送`POST`请求的第二步就是向`send()`方法中传入某些数据。
+
+我们可以使用XHR来模仿表单提交：首先将`Content-Type`头部信息设置为`application/x-www-form-urlencoded`，也就是表单提交时的内容类型，其次是以适当的格式创建一个字符串。`POST`数据的格式与查询字符串格式相同。如果需要将页面中表单的数据进行序列化，然后再通过XHR发送到服务器。
+
+```js
+function submitData() {
+    let xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4) {
+            if ((xhr.status >= 200 && xhr.status < 300) || xhr.status == 304) {
+                alert(xhr.responseText);
+            } else {
+                alert("Request was unsuccessful: " + xhr.status);
+            }
+        }
+    };
+    xhr.open("post", "postexample.php", true);
+    // 构造表单的Content-Type头部
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    let form = document.getElementById("user-info");
+    // 将POST数据格式化为与查询字符串相同格式的字符串，然后序列化，在传给send()方法；
+    xhr.send(serialize(form));
+}
+```
 
 
 
 ## 24.2 `XMLHttpRequest`2级
 
-
-
 ### 24.2.1 `FormData`类型
 
+XMLHttpRequest 2级定义了`FormData`类型。`FormData`为序列化表单以及创建与表单格式相同的数据（用于通过XHR传输）提供了便利。使用`FormData`的方便之处体现在不必明确地在`XHR`对象上设置请求头部。XHR对象能够识别传入的数据类型是`FormData`的实例，并配置适当的头部信息。
+
+`FormData`对象方法：
+
+- **`append()`方法** ：这个方法接收两个参数：键和值，分别对应表单字段的名字和字段中包含的值。可以使用这个方法添加任意多个键值对。
+
+下面的代码创建了一个`FormData`对象，并向其中添加了一些数据：
+
+```js
+let data = new FormData();
+data.append("name", "Nicholas");
+```
+
+而通过向`FormData`构造函数中传入表单元素，也可以用表单元素的数据预先向其中填入键值对：
+
+```js
+let data = new FormData(document.forms[0]);
+```
+
+创建了`FormData`的实例后，可以将它直接传给XHR的`send()`方法，如下所示：
+
+```js
+let xhr = new XMLHttpRequest();
+xhr.onreadystatechange = function() {
+    if (xhr.readyState == 4) {
+        if ((xhr.status >= 200 && xhr.status < 300) || xhr.status == 304) {
+            alert(xhr.responseText);
+        } else {
+            alert("Request was unsuccessful: " + xhr.status);
+        }
+    }
+};
+xhr.open("post", "postexample.php", true);
+let form = document.getElementById("user-info");
+xhr.send(new FormData(form));
+```
+
+
+
 ### 24.2.2 超时设定
+
+
 
 ### 24.2.3 `overrideMimeType()`方法
 
