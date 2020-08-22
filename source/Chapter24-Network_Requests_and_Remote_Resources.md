@@ -27,8 +27,7 @@ let xhr = new XMLHttpRequest();
 **使用XHR以*异步*方式发送请求：**
 
 1. 创建XHR对象`let xhr = new XMLHttpRequest();`
-2. 为XHR对象创建`onreadystatechange`事件处理程序，以监听XHR对象的`readyState`状态；
-3. 为XHR对象创建`onprogress`事件处理程序。*此为可选步骤。*
+2. 为XHR对象创建`onreadystatechange`事件处理程序，以监听XHR对象的`readyState`状态；也可以为XHR对象创建`onload`或`onprogress`等进度事件处理程序；*此为可选步骤。*
 4. 调用`open()`方法以创建一个请求（但不会实际发送请求）；
 5. 使用`setRequestHeader()`方法设置自定义的请求头部信息。*此为可选步骤。*
 6. 使用`overrideMimeType()`方法，用于重写XHR响应的MIME类型。*此为可选步骤。*
@@ -392,17 +391,175 @@ xhr.send(null);
 
 ## 24.4 跨域资源共享 (Cross-Origin Resource Sharing, CORS)
 
+CORS（Cross-Origin Resource Sharing，跨源资源共享）是W3C的一个工作草案，定义了在必须访问跨源资源时，浏览器与服务器应该如何沟通。CORS背后的基本思想，就是使用自定义的HTTP头部让浏览器与服务器进行沟通，从而决定请求或响应是应该成功，还是应该失败。
+
+比如一个简单的使用`GET`或`POST`发送的请求，它没有自定义的头部，而主体内容是`text/plain`。在发送该请求时，需要给它附加一个额外的`Origin`头部，其中包含请求页面的源信息（协议、域名和端口），以便服务器根据这个头部信息来决定是否给予响应。下面是`Origin`头部的一个示例：
+
+```
+Origin: http://www.nczonline.net
+```
+
+如果服务器认为这个请求可以接受，就在`Access-Control-Allow-Origin`头部中回发相同的源信息（如果是公共资源，可以回发`"*"`）。例如：
+
+```
+Access-Control-Allow-Origin: http://www.nczonline.net
+```
+
+**如果没有这个头部，或者有这个头部但源信息不匹配，浏览器就会驳回请求。如果头部信息正确，浏览器会处理请求。**
+
+**注意，请求和响应都不包含cookie信息。**
+
+现代浏览器都通过`XMLHttpRequest`对象实现了对CORS的原生支持。在尝试打开不同来源的资源时，无需额外编写代码就可以触发这个行为。要请求位于另一个域中的资源，使用标准的XHR对象并在`open()`方法中传入绝对URL即可，例如：
+
+```js
+let xhr = new XMLHttpRequest();
+
+xhr.onreadystatechange = function() {
+    if (xhr.readyState == 4) {
+        if ((xhr.status >= 200 && xhr.status < 300) || xhr.status == 304) {
+            console.log(xhr.responseText);
+        } else {
+            console.log("Request was unsuccessful: " + xhr.status);
+        }
+    }
+};
+
+xhr.open("get", "http://www.somewhere-else.com/page/", true);
+xhr.send(null);
+```
+
+**为了安全，跨域XHR对象有一些限制：**
+
+- 不能使用`setRequestHeader()`设置自定义头部。
+- 不能发送和接收cookie。
+- 调用`getAllResponseHeaders()`方法总会返回空字符串。
+
+由于无论同源请求还是跨源请求都使用相同的接口，因此对于本地资源，最好使用相对URL，在访问远程资源时再使用绝对URL。这样做能消除歧义，避免出现限制访问头部或本地cookie信息等问题。
+
 ### 24.4.1 Preflighted Requests
 
-### 24.4.2 Credentialed Requests
+CORS通过一种叫做Preflighted Requests的透明服务器验证机制支持开发人员使用自定义的头部、GET或POST之外的方法，以及不同类型的主体内容。在使用下列高级选项来发送请求时，就会向服务器发送一个Preflight请求。这种请求使用OPTIONS方法，发送下列头部：
+
+- `Origin`：与简单的请求相同。
+- `Access-Control-Request-Method`：请求自身使用的方法。
+- `Access-Control-Request-Headers`：（可选）自定义的头部信息，多个头部以逗号分隔。
+
+以下是一个带有自定义头部NCZ的使用`POST`方法发送的请求。
+
+```
+Origin: http://www.nczonline.net
+Access-Control-Request-Method: POST
+Access-Control-Request-Headers: NCZ
+```
+
+发送这个请求后，服务器可以决定是否允许这种类型的请求。服务器通过在响应中发送如下头部与浏览器进行沟通：
+
+- `Access-Control-Allow-Origin`：与简单的请求相同。
+- `Access-Control-Allow-Methods`：允许的方法，多个方法以逗号分隔。
+- `Access-Control-Allow-Headers`：允许的头部，多个头部以逗号分隔。
+- `Access-Control-Max-Age`：应该将这个Preflight请求缓存多长时间（以秒表示）。
+
+例如：
+
+```
+Access-Control-Allow-Origin: http://www.nczonline.net
+Access-Control-Allow-Methods: POST, GET
+Access-Control-Allow-Headers: NCZ
+Access-Control-Max-Age: 1728000
+```
+
+Preflight请求结束后，结果将按照响应中指定的时间缓存起来。而为此付出的代价只是第一次发送这种请求时会多一次HTTP请求。
+
+### 24.4.2 带凭据的请求 (Credentialed Requests)
+
+默认情况下，跨源请求不提供凭据（cookie、HTTP认证及客户端SSL证明等）。通过将`withCredentials`属性设置为`true`，可以指定某个请求应该发送凭据。如果服务器接受带凭据的请求，会用下面的HTTP头部来响应。
+
+```
+Access-Control-Allow-Credentials: true
+```
+
+如果发送的是带凭据的请求，但服务器的响应中没有包含这个头部，那么浏览器就不会把响应交给JavaScript（于是，`responseText`中将是空字符串，`status`的值为0，而且会调用`onerror()`事件处理程序）。另外，服务器还可以在Preflight响应中发送这个HTTP头部，表示允许源发送带凭据的请求。
 
 
 
 ## 24.5 其他跨域技术
 
+在CORS出现以前，开发人员利用DOM中能够执行跨域请求的功能，在不依赖XHR对象的情况下也能发送某种跨域请求。
+
 ### 24.5.1 图像Pings
 
+第一种跨域请求技术使用`<img>`标签。我们知道，一个网页可以从任何网页中加载图像，不用担心跨域不跨域。也可以动态地创建图像，使用它们的`onload`和`onerror`事件处理程序来确定是否接收到了响应。
+
+动态创建图像经常用于**图像**Ping。图像Ping是与服务器进行简单、单向的跨域通信的一种方式。请求的数据是通过查询字符串形式发送的，而响应可以是任意内容，但通常是像素图或204响应。通过图像Ping，浏览器得不到任何具体的数据，但通过侦听`load`和`error`事件，它能知道响应是什么时候接收到的。
+
+```js
+let img = new Image();
+
+// onload和onerror事件处理程序指定为同一个函数，无论是什么响应，只要请求完成，就能得到通知。
+img.onload = img.onerror = function() {
+    alert("Done!");
+};
+
+// 设置src属性将发送请求
+img.src = "http://www.example.com/test?name=Nicholas";
+```
+
+图像Ping最常用于跟踪用户点击页面或动态广告曝光次数。
+
+图像Ping有两个主要的缺点：
+
+- 一是只能发送`GET`请求；
+
+- 二是无法访问服务器的响应文本。
+
+因此，图像Ping只能用于浏览器与服务器间的单向通信。
+
 ### 24.5.2 JSONP
+
+JSONP是JSON with padding（填充式JSON或参数式JSON）的简写，这种应用JSON的新方法已经变成了一种流行的Web服务。
+
+JSONP看起来与JSON差不多，只不过是被包含在函数调用中的JSON，就像下面这样：
+
+```js
+callback({ "name": "Nicholas" });
+```
+
+JSONP由2部分组成：
+
+- **回调函数** ：是当响应到来时应该在页面中调用的函数。回调函数的名字一般是在请求中指定的。
+- **数据** ：就是传入回调函数中的JSON数据。
+
+下面是一个典型的JSONP请求，这里指定的回调函数的名字叫`handleResponse()`：
+```
+http://freegeoip.net/json/?callback=handleResponse
+```
+
+SONP是通过动态`<script>`元素来使用的，使用时可以为`src`属性指定一个跨域URL。`<script>`元素与`<img>`元素类似，都有能力不受限制地从其他域加载资源。
+
+```js
+function handleResponse(response) {
+    console.log(
+        `You're at IP address ${response.ip}, which is in
+        ${response.city}, ${response.region_name}`
+    );
+}
+
+let script = document.createElement("script");
+
+// 设置src属性发送请求
+script.src = "http://freegeoip.net/json/?callback=handleResponse";
+
+// 在JSONP响应加载到页面中以后，就会立即执行。
+document.body.insertBefore(script, document.body.firstChild);
+```
+
+与图像Ping相比，它的**优点**在于能够直接访问响应文本，支持在浏览器与服务器之间双向通信。
+
+JSONP也有2点**不足** ：
+
+- 首先，JSONP是从其他域中加载代码执行。如果其他域不安全，很可能会在响应中夹带一些恶意代码。
+
+- 其次，要确定JSONP请求是否失败并不容易。虽然HTML5给`<script>`元素新增了一个`onerror`事件处理程序，但目前还没有得到任何浏览器支持。为此，开发人员不得不使用计时器检测指定时间内是否接收到了响应。但就算这样也不能尽如人意，毕竟不是每个用户上网的速度和带宽都一样。
 
 
 
