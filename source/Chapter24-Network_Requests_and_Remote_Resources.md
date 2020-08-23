@@ -585,13 +585,117 @@ JSONP也有2点**不足** ：
 
 ## 24.8 Web Sockets
 
+Web Sockets的目标是在一个单独的持久连接上提供全双工、双向通信。在JavaScript中创建了Web Socket之后，会有一个HTTP请求发送到服务器以发起连接。在取得服务器响应后，建立的连接会使用HTTP`Upgrade`头部 (header) 来将HTTP协议切换为Web Socket协议。也就是说，使用标准的HTTP服务器无法实现Web Sockets，只有支持这种协议的专门服务器才能正常工作。
+
+由于Web Sockets使用了自定义的协议，所以URL模式也略有不同。未加密的连接不再是`http://`，而是`ws://`；加密的连接也不是`https://`，而是`wss://`。在使用Web Socket URL时，必须带着这个模式，因为将来还有可能支持其他模式。
+
 ### 24.8.1 API
+
+要创建Web Socket，先实例一个`WebSocket`对象并传入要连接的绝对URL。实例化了`WebSocket`对象后，浏览器就会马上尝试创建连接。
+
+```js
+var socket = new WebSocket("ws://www.example.com/server.php");
+```
+
+**注意，必须给`WebSocket`构造函数传入绝对URL。**
+
+**注意，同源策略对Web Sockets不适用，因此可以通过它打开到任何站点的连接。** 至于是否会与某个域中的页面通信，则完全取决于服务器。（通过握手信息就可以知道请求来自何方。）
+
+与XHR类似，`WebSocket`也有一个表示当前状态的`readyState`属性：
+
+- `WebSocket.OPENING (0)`：正在建立连接。
+- `WebSocket.OPEN (1)`：已经建立连接。
+- `WebSocket.CLOSING (2)`：正在关闭连接。
+- `WebSocket.CLOSE (3)`：已经关闭连接。
+
+`WebSocket`没有`readystatechange`事件；不过，它有其他事件，对应着不同的状态。`readyState`的值永远从0开始。
+
+要关闭Web Socket连接，可以在任何时候调用`close()`方法：
+
+```js
+socket.close();
+```
+
+调用了`close()`之后，`readyState`的值立即变为2（正在关闭），而在关闭连接后就会变成3。
 
 ### 24.8.2 Sending/Receiving Data
 
+Web Socket打开之后，就可以通过连接发送和接收数据。要向服务器发送数据，使用`send()`方法并传入任意字符串、`ArrayBuffer`或者`Blob`，例如：
+
+```js
+let socket = new WebSocket("ws://www.example.com/server.php");
+
+let stringData = "Hello world!";
+let arrayBufferData = Uint8Array.from(['f', 'o' 'o']);
+let blobData = new Blob(['f', 'o' 'o']);
+
+socket.send(stringData);
+socket.send(arrayBufferData.buffer);
+socket.send(blobData);
+```
+
+当服务器向客户端发来消息时，`WebSocket`对象就会触发`message`事件。这个`message`事件与其他传递消息的协议类似，也是把返回的数据保存在`event.data`属性中：
+
+```js
+socket.onmessage = function(event) {
+    let data = event.data;
+    // do something with data
+};
+```
+
+与通过`send()`发送到服务器的数据一样，`event.data`中返回的数据也可以被解析为`ArrayBuffer`或者`Blob`。这是被WebSocket对象的`binaryType`所控制的，它可以是`blob`或者`arraybuffer`。
+
 ### 24.8.3 Other Events
+
+`WebSocket`对象还有其他3个事件，在连接生命周期的不同阶段触发：
+
+- `open`：在成功建立连接时触发。
+- `error`：在发生错误时触发，连接不能持续。
+- `close`：在连接关闭时触发。
+
+`WebSocket`对象不支持DOM 2级事件侦听器，因此必须使用DOM 0级语法分别定义每个事件处理程序。
+
+```js
+var socket = new WebSocket("ws://www.example.com/server.php");
+
+socket.onopen = function(){ 
+    alert("Connection established.");
+};
+
+socket.onerror = function(){
+    alert("Connection error.");
+};
+
+socket.onclose = function(){
+    alert("Connection closed.");
+};
+```
+
+在这三个事件中，只有`close`事件的`event`对象有额外的信息。这个事件的事件对象有三个额外的属性：
+
+- `wasClean`是一个布尔值，表示连接是否已经明确地关闭；
+- `code`是服务器返回的数值状态码；
+- `reason`是一个字符串，包含服务器发回的消息。
+
+可以把这些信息显示给用户，也可以记录到日志中以便将来分析：
+
+```js
+socket.onclose = function(event) {
+    console.log(`as clean? ${event.wasClean} Code=${event.code} Reason=${event.reason}`);
+};
+```
 
 
 
 ## 24.9 SECURITY
 
+为确保通过XHR访问的URL安全，通行的做法就是验证发送请求者是否有权限访问相应的资源。有下列几种方式可供选择。
+
+- 要求以SSL连接来访问可以通过XHR请求的资源。
+- 要求每一次请求都要附带经过相应算法计算得到的验证码。
+
+请注意，下列措施对防范CSRF攻击不起作用。
+
+- 要求发送`POST`而不是`GET`请求——很容易改变。
+- 检查来源URL以确定是否可信——来源记录很容易伪造。
+- 基于cookie信息进行验证——同样很容易伪造。
