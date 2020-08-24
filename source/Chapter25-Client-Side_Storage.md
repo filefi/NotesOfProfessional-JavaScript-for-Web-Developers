@@ -194,11 +194,11 @@ name=name1=value1&name2=value2&name3=value3&name4=value4&name5=value5
 
 ### 25.1.5 关于cookie的思考 (Cookie Considerations)
 
-还有一类cookie被称为 *“HTTP-only”*。HTTP专有cookie可以从浏览器或者服务器设置，但是只能从服务器端读取，因为JavaScript无法获取HTTP专有cookie的值。
+还有一类cookie被称为 *“HTTP-only”*。HTTP-only cookie可以从浏览器或者服务器设置，但是只能从服务器端读取，因为JavaScript无法获取HTTP-only cookie的值。
 
-由于所有的cookie都会由浏览器作为请求头发送，所以在cookie中存储大量信息会影响到特定域的请求性能。cookie信息越大，完成对服务器请求的时间也就越长。尽管浏览器对cookie进行了大小限制，不过最好还是尽可能在cookie中少存储信息，以避免影响性能。
+最好还是尽可能在cookie中少存储信息，以避免影响性能。
 
-cookie的性质和它的局限使得其并不能作为存储大量信息的理想手段，所以又出现了其他方法。
+**注意：一定不要在cookie中存储重要和敏感的数据。**
 
 
 
