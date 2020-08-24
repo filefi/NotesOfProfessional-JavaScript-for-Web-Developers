@@ -2,15 +2,203 @@
 
 ## 25.1 Cookies
 
-### 25.1.1 Restrictions
+HTTP Cookie，通常直接叫做cookie，最初是在客户端用于存储会话信息的。该标准要求服务器对任意HTTP请求发送Set-Cookie HTTP头作为响应的一部分，其中包含会话信息。例如，这种服务器响应的头可能如下：
 
-### 25.1.2 Cookie Parts
+```
+HTTP/1.1 200 OK
+Content-type: text/html
+Set-Cookie: name=value
+Other-header: other-header-value
+```
 
-### 25.1.3 Cookies in JavaScript
+这个HTTP响应设置以`name`为名称、以`value`为值的一个cookie，名称和值在传送时都必须是URL编码的。浏览器会存储这样的会话信息，并在这之后，通过为每个请求添加Cookie HTTP头将信息发送回服务器，如下所示：
+
+```
+GET /index.html HTTP/1.1
+Cookie: name=value
+Other-header: other-header-value
+```
+
+发送回服务器的额外信息可以用于唯一验证客户来自于发送的哪个请求。
+
+
+
+### 25.1.1 限制 (Restrictions)
+
+- 储存在Cookie中的信息只能让*设置Cookie的域* 或 *指定的域* 或 *指定路径页面* 访问，而无法被其他域访问。
+
+- 为确保Cookie不会被恶意使用并占用太多磁盘空间，每个域的cookie总数是有限的，浏览器各有不同。
+
+- **浏览器中对于cookie的尺寸也有限制。** 为了最佳的浏览器兼容性，最好将整个cookie长度限制在4096字节以内。尺寸限制影响到一个域下所有的cookie，而并非每个cookie单独限制。
+
+一般来说，按照下列限制使用cookie，就不会在任何浏览器中遇到问题：
+
+- 300 cookies total
+- 4096 bytes per cookie
+- 20 cookies per domain
+- 81920 bytes per domain
+
+
+
+### 25.1.2 Cookie的构成 (Cookie Parts)
+
+cookie由浏览器保存的以下几块信息构成：
+
+- **名称** ：一个唯一确定cookie的名称。cookie名称是不区分大小写的，所以`myCookie`和`MyCookie`被认为是同一个cookie。然而，实践中最好将cookie名称看作是区分大小写的，因为某些服务器会这样处理cookie。**cookie的名称必须是经过URL编码的。**
+- **值** ：储存在cookie中的字符串值。**值必须被URL编码。**
+- **域** ：`domain`用于指定cookie对于哪个域是有效的。所有向该域发送的请求中都会包含这个cookie信息。这个值可以包含子域（subdomain，如`www.wrox.com`），也可以不包含它（如`.wrox.com`，则对于wrox.com的所有子域都有效）。如果没有明确设定，那么这个域会被认作来自设置cookie的那个域。
+- **路径** ：`path`用于指定对于指定域中的哪个路径，应该向服务器发送cookie。例如，你可以指定cookie只有从`http://www.wrox.com/books/`中才能访问，那么`http://www.wrox.com`的页面就不会发送cookie信息，即使请求都是来自同一个域的。
+- **失效时间** ：`expires`表示cookie何时应该被删除的时间戳（也就是，何时应该停止向服务器发送这个cookie）。默认情况下，浏览器会话结束时即将所有cookie删除；不过也可以自己设置删除时间。这个值是个GMT格式的日期（Wdy, DD-Mon-YYYY HH:MM:SS GMT），用于指定应该删除cookie的准确时间。因此，cookie可在浏览器关闭后依然保存在用户的机器上。如果你设置的失效日期是个以前的时间，则cookie会被立刻删除。
+- **安全标志** ：指定`secure`标志后，cookie只有在使用SSL连接的时候才发送到服务器。`secure`标志是cookie中唯一一个非名值对儿的部分，直接包含一个`secure`单词。例如，cookie信息只能发送给`https://www.wrox.com`，而`http://www.wrox.com`的请求则不能发送 cookie。
+
+每一段信息都作为`Set-Cookie`头的一部分，使用分号加空格分隔每一段，如下例所示。
+
+```
+HTTP/1.1 200 OK
+Content-type: text/html
+Set-Cookie: name=value; expires=Mon, 22-Jan-07 07:10:24 GMT; domain=.wrox.com; path=/; secure
+Other-header: other-header-value
+```
+
+**注意：域、路径、失效时间和secure标志都是服务器给浏览器的指示，以指定何时应该发送cookie。这些参数并不会作为发送到服务器的cookie信息的一部分，只有名值对儿才会被发送。**
+
+
+
+### 25.1.3 JavaScript中的Cookies (Cookies in JavaScript)
+
+使用`document.cookie`属性可以在JavaScript对Cookies进行操作。基本的cookie操作有三种：
+
+- 读取
+- 写入
+- 删除
+
+由于JavaScript中读、写、删除cookie不是非常直观，常常需要写一些函数来简化cookie的功能。它们在`CookieUtil`对象中如下表示：
+
+```js
+class CookieUtil {
+    static get(name) {
+        let cookieName = `${encodeURIComponent(name)}=`,
+            cookieStart = document.cookie.indexOf(cookieName),
+            cookieValue = null;
+        
+        if (cookieStart > -1){
+            let cookieEnd = document.cookie.indexOf(";", cookieStart);
+            if (cookieEnd == -1){
+                cookieEnd = document.cookie.length;
+            }
+            cookieValue = decodeURIComponent(document.cookie.substring(cookieStart
+                                                                + cookieName.length, cookieEnd));
+        }
+        return cookieValue;
+    }
+    
+    static set(name, value, expires, path, domain, secure) {
+        let cookieText = `${encodeURIComponent(name)}=${encodeURIComponent(value)}`;
+        if (expires instanceof Date) {
+            cookieText += `; expires=${expires.toGMTString()}`;
+        }
+        if (path) {
+            cookieText += `; path=${path}`;
+        }
+        if (domain) {
+            cookieText += `; domain=${domain}`;
+        }
+        if (secure) {
+            cookieText += "; secure";
+        }
+        document.cookie = cookieText;
+    }
+    
+    static unset(name, path, domain, secure) {
+        CookieUtil.set(name, "", new Date(0), path, domain, secure);
+    }
+};
+```
+
+可以像下面这样使用这些方法：
+
+```js
+// set cookies
+CookieUtil.set("name", "Nicholas");
+CookieUtil.set("book", "Professional JavaScript");
+
+// read the values
+alert(CookieUtil.get("name")); // "Nicholas"
+alert(CookieUtil.get("book")); // "Professional JavaScript"
+
+// remove the cookies
+CookieUtil.unset("name");
+CookieUtil.unset("book");
+
+// set a cookie with path, domain, and expiration date
+CookieUtil.set("name", "Nicholas", "/books/projs/", "www.wrox.com", new Date("January 1, 2010"));
+
+// delete that same cookie
+CookieUtil.unset("name", "/books/projs/", "www.wrox.com");
+
+// set a secure cookie
+CookieUtil.set("name", "Nicholas", null, null, null, true);
+```
+
+
+
+#### 读取
+
+当用来**读取属性值**时，`document.cookie`返回当前页面可用的（根据cookie的域、路径、失效时间和安全设置）所有cookie的字符串，一系列由分号隔开的名值对，如下例所示：
+
+```
+name1=value1;name2=value2;name3=value3
+```
+
+所有名字和值都是经过URL编码的，所以必须使用`decodeURIComponent()`来解码。
+
+#### 写入
+
+当用于**写入属性值**时，`document.cookie`属性可以设置为一个新的cookie字符串。这个cookie字符串会被解释并添加到现有的cookie集合中。设置`document.cookie`并不会覆盖cookie，除非设置的cookie的名称已经存在。设置cookie的格式如下，和`Set-Cookie`头中使用的格式一样。
+
+```
+name=value; expires=expiration_time; path=domain_path; domain=domain_name; secure
+```
+
+最好每次设置cookie时都使用`encodeURIComponent()`对cookie的名称和值进行URL编码：
+
+```js
+document.cookie = encodeURIComponent("name") + "=" +
+                  encodeURIComponent("Nicholas"); 
+```
+
+要给被创建的cookie指定额外的信息，只要将参数追加到该字符串，和`Set-Cookie`头中的格式一样，如下所示：
+
+```js
+document.cookie = encodeURIComponent("name") + "=" +
+                   encodeURIComponent("Nicholas") + "; domain=.wrox.com; path=/";
+```
+
+#### 删除
+
+没有删除已有cookie的直接方法。所以，需要使用相同的路径、域和安全选项再次设置cookie，并将失效时间设置为过去的时间。`CookieUtil.unset()`方法可以处理这种事情。它接收4个参数：要删除的cookie的名称、可选的路径参数、可选的域参数和可选的安全参数。
+
+
 
 ### 25.1.4 Subcookies
 
-### 25.1.5 Cookie Considerations
+为了绕开浏览器的单域名下的cookie数限制，一些开发人员使用了一种称为**子cookie**（subcookie）的概念。子cookie是存放在单个cookie中的更小段的数据。也就是使用cookie值来存储多个名称值对儿。子cookie最常见的的格式如下所示。
+
+```
+name=name1=value1&name2=value2&name3=value3&name4=value4&name5=value5
+```
+
+子cookie一般也以查询字符串的格式进行格式化。然后这些值可以使用单个cookie进行存储和访问，而非对每个“名称值对”使用不同的cookie存储。最后网站或者Web应用程序可以无需达到单域名cookie上限也可以存储更加结构化的数据。
+
+
+
+### 25.1.5 关于cookie的思考 (Cookie Considerations)
+
+还有一类cookie被称为 *“HTTP-only”*。HTTP专有cookie可以从浏览器或者服务器设置，但是只能从服务器端读取，因为JavaScript无法获取HTTP专有cookie的值。
+
+由于所有的cookie都会由浏览器作为请求头发送，所以在cookie中存储大量信息会影响到特定域的请求性能。cookie信息越大，完成对服务器请求的时间也就越长。尽管浏览器对cookie进行了大小限制，不过最好还是尽可能在cookie中少存储信息，以避免影响性能。
+
+cookie的性质和它的局限使得其并不能作为存储大量信息的理想手段，所以又出现了其他方法。
 
 
 
