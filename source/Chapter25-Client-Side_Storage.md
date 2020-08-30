@@ -204,9 +204,85 @@ name=name1=value1&name2=value2&name3=value3&name4=value4&name5=value5
 
 ## 25.2 WEB STORAGE
 
-### 25.2.1 The Storage Type
+Web Storage的目的是克服由cookie带来的一些限制，当数据需要被严格控制在客户端上时，无须持续地将数据发回服务器。Web Storage的两个主要目标是：
 
-### 25.2.2 The sessionStorage Object
+- 提供一种在cookie之外存储会话数据的途径；
+- 提供一种存储大量可以跨会话存在的数据的机制。
+
+最初的Web Storage规范包含了两种对象的定义：`sessionStorage`和`localStorage`。这两个对象在支持的浏览器中都是以`window`对象属性的形式存在的。
+
+### 25.2.1 `Storage`类型
+
+`Storage`类型提供最大的存储空间（因浏览器而异）来存储名值对儿。`Storage`的实例与其他对象类似，有如下方法。
+
+- `clear()`： 删除所有值；Firefox中没有实现 。
+- `getItem(name)`：根据指定的名字`name`获取对应的值。
+- `key(index)`：获得index位置处的值的名字。
+- `removeItem(name)`：删除由`name`指定的名值对儿。
+- `setItem(name, value)`：为指定的`name`设置一个对应的值。
+
+其中，`getItem()`、`removeItem()`和`setItem()`方法可以直接调用，也可通过`Storage`对象间接调用。因为每个项目都是作为属性存储在该对象上的，所以可以通过点语法或者方括号语法访问属性来设置、读取值，或者通过`delete`操作符进行删除。
+
+### 25.2.2 `sessionStorage`对象
+
+`sessionStorage`对象存储特定于某个会话的数据，也就是该数据只保持到浏览器关闭。这个对象就像会话cookie，也会在浏览器关闭后消失。存储在`sessionStorage`中的数据可以跨越页面刷新而存在，同时如果浏览器支持，浏览器崩溃并重启之后依然可用。
+
+因为`sessionStorage`对象绑定于某个服务器会话，所以当文件在本地运行的时候是不可用的。存储在`sessionStorage`中的数据只能由最初给对象存储数据的页面访问到，所以对多页面应用有限制。
+
+**`sessionStorage`对象应该主要用于仅针对会话的小段数据的存储。如果需要跨越会话存储数据，那么`globalStorage`或者`localStorage`更为合适。**
+
+`sessionStorage`对象其实是`Storage`的一个实例，所以可以使用`setItem()`或者直接设置新的属性来存储数据：
+
+```js
+//使用方法存储数据
+sessionStorage.setItem("name", "Nicholas");
+
+//使用属性存储数据
+sessionStorage.book = "Professional JavaScript"
+```
+
+不同浏览器写入数据方式略有不同。Firefox和WebKit实现了同步写入，所以添加到存储空间中的数据是立刻被提交的。而IE的实现则是异步写入数据，所以在设置数据和将数据实际写入磁盘之间可能有一些延迟。
+
+`sessionStorage`中有数据时，可以使用`getItem()`或者通过直接访问属性名来获取数据：
+
+```js
+// get data using method
+let name = sessionStorage.getItem("name");
+
+// get data using property
+let book = sessionStorage.book;
+```
+
+还可以通过结合`length`属性和`key()`方法来迭代`sessionStorage`中的值，如下所示：
+
+```js
+for (let i = 0, len = sessionStorage.length; i < len; i++){
+    let key = sessionStorage.key(i);
+    let value = sessionStorage.getItem(key);
+    alert(`${key}=`${value}`);
+}
+```
+
+还可以使用`for-in`循环来迭代`sessionStorage`中的值：
+
+```js
+for (let key in sessionStorage){
+    let value = sessionStorage.getItem(key);
+    alert(`${key}=${value}`);
+}
+```
+
+要从`sessionStorage`中删除数据，可以使用`delete`操作符删除对象属性，也可调用`removeItem()`方法：
+
+```js
+// use delete to remove a value
+delete sessionStorage.name;
+
+// use method to remove a value
+sessionStorage.removeItem("book");
+```
+
+
 
 ### 25.2.3 The localStorage Object
 
