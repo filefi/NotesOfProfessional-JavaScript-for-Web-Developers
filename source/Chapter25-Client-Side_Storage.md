@@ -286,13 +286,49 @@ sessionStorage.removeItem("book");
 
 ### 25.2.3 The localStorage Object
 
-### 25.2.4 The storage Event
+`localStorage`对象在修订过的HTML 5规范中作为持久保存客户端数据的方案取代了`globalStorage`。与`globalStorage`不同，不能给`localStorage`指定任何访问规则；规则事先就设定好了。要访问同一个`localStorage`对象，页面必须来自同一个域名（子域名无效），使用同一种协议，在同一个端口上。这相当于`globalStorage[location.host]`。
+
+由于`localStorage`是`Storage`的实例，所以可以像使用`sessionStorage`一样来使用它。下面是一些例子。
+
+```js
+//使用方法存储数据
+localStorage.setItem("name", "Nicholas");
+
+//使用属性存储数据
+localStorage.book = "Professional JavaScript";
+
+//使用方法读取数据
+let name = localStorage.getItem("name");
+
+//使用属性读取数据
+let book = localStorage.book;
+```
+
+存储在`localStorage`中的数据和存储在`globalStorage`中的数据一样，都遵循相同的规则：数据保留到通过`JavaScript`删除或者是用户清除浏览器缓存。
+
+### 25.2.4 `storage`事件
+
+对`Storage`对象（`sessionStorage`、`globalStorage`、`localStorage`）进行任何修改，都会在文档上触发`storage`事件。当通过属性或`setItem()`方法保存数据，使用`delete`操作符或`removeItem()`删除数据，或者调用`clear()`方法时，都会发生该事件。这个事件的`event`对象有以下属性。
+
+- `domain`：发生变化的存储空间的域名。
+- `key`：设置或者删除的键名。
+- `newValue`：如果是设置值，则是新值；如果是删除键，则是`null`。
+- `oldValue`：键被更改之前的值。
+
+```js
+window.addEventListener("storage",
+    (event) => alert('Storage changed for ${event.domain}'));
+```
 
 ### 25.2.5 Limits and Restrictions
 
+与其他客户端数据存储方案类似，Web Storage同样也有限制。这些限制因浏览器而异。一般来说，对存储空间大小的限制都是以每个来源（协议、域和端口）为单位的。换句话说，每个来源都有固定大小的空间用于保存自己的数据。
+
+对`localStorage`和`sessionStorage`的存储限制因浏览器而异，大多数桌面浏览器会设置每个来源5MB的限制。
 
 
-## 25.3 INDEXEDDB
+
+## 25.3 IndexedDB
 
 ### 25.3.1 Databases
 
