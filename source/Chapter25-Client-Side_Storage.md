@@ -320,7 +320,7 @@ window.addEventListener("storage",
     (event) => alert('Storage changed for ${event.domain}'));
 ```
 
-### 25.2.5 Limits and Restrictions
+### 25.2.5 限制
 
 与其他客户端数据存储方案类似，Web Storage同样也有限制。这些限制因浏览器而异。一般来说，对存储空间大小的限制都是以每个来源（协议、域和端口）为单位的。换句话说，每个来源都有固定大小的空间用于保存自己的数据。
 
@@ -328,9 +328,36 @@ window.addEventListener("storage",
 
 
 
-## 25.3 IndexedDB
+Indexed Database API，或者简称为IndexedDB，是在浏览器中保存结构化数据的一种数据库。IndexedDB的思想是创建一套API，方便保存和读取JavaScript对象，同时还支持查询及搜索。
+
+IndexedDB设计的操作完全是异步进行的。因此，大多数操作会以请求方式进行，但这些操作会在稍后执行，然后如果成功则返回结果，如果失败则返回错误。差不多每一次IndexedDB操作，都需要你注册`onerror`或`onsuccess`事件处理程序，以确保适当地处理结果。
+
+目前，所有主流浏览器的最新版本都完全支持IndexedDB
 
 ### 25.3.1 Databases
+
+IndexedDB就是一个数据库，与MySQL或Web SQL Database等这些你以前可能用过的数据库类似。
+
+IndexedDB最大的特色是使用对象保存数据，而不是使用表来保存数据。一个IndexedDB数据库，就是一组位于相同命名空间下的对象的集合。
+
+使用IndexedDB的第一步是打开它，即把要打开的数据库名和版本号传给`indexedDB.open()`。如果传入的数据库已经存在，就会发送一个打开它的请求；如果传入的数据库还不存在，就会发送一个创建并打开它的请求。总之，调用`indexedDB.open()`会返回一个`IDBRequest`对象，在这个对象上可以添加`onerror`和`onsuccess`事件处理程序。
+
+```js
+let db, request, version = 1;
+
+// The version numbers will be converted to an unsigned long long number, so do not use decimal points; use whole integers instead.
+request = indexedDB.open("admin", version); 
+
+// 如果发生了错误
+request.onerror = (event) =>
+    alert(`Failed to open: ${event.target.errorCode}`); // event.target.errorCode中将保存一个错误码，表示问题的性质。
+
+request.onsuccess = (event) => {
+    db = event.target.result; // event.target都指向request对象
+};
+```
+
+
 
 ### 25.3.2 Object Stores
 
