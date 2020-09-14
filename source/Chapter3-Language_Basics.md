@@ -1,13 +1,15 @@
 # 第3章 基本概念
 
+本章接下来的内容主要基于ECMAScript6。
+
 ## 3.1 语法
 
 **区分大小写：** ECMAScript中的一切（变量、函数名和操作符）都区分大小写。
 
-**标识符：** 就是指变量、函数、属性的名字，或者函数的参数。标识符可以是按照下列格式规则组合起来的一或多个字符：
+**标识符：** 就是指变量、函数、属性或函数参数的名称。标识符可以由一或多个下列字符组成：
 
-- 第一个字符必须是一个字母、下划线（_）或一个美元符号（$）；
-- 其他字符可以是字母、下划线、美元符号或数字。
+- 第一个字符必须是一个字母、下划线（`_`）或美元符号（`$`）；
+- 剩下的其他字符可以是字母、下划线、美元符号或数字。
 
 **注释：** 包括单行注释和块级注释：
 
@@ -20,7 +22,7 @@
  */
 ```
 
-**严格模式：** ECMAScript 5引入了 **严格模式（strict mode）** 的概念。在严格模式下，ECMAScript 3中的一些不确定的行为将得到处理，而且对某些不安全的操作也会抛出错误。要在整个脚本中启用严格模式，可以在顶部添加如下代码：
+**严格模式：** ECMAScript 5引入了 **严格模式（strict mode）** 的概念。在严格模式下，ECMAScript 3中的一些不确定的行为将得到处理，而且对某些不安全的操作也会抛出错误。要在整个脚本中启用严格模式，可以在顶部添加一行如下代码：
 
 ```js
 "use strict";
@@ -48,36 +50,49 @@ var diff = a - b;               // 有效的语句——推荐
 
 ECMA-262描述了一组具有特定用途的**关键字**，这些关键字可用于表示控制语句的开始或结束，或者用于执行特定操作等。
 
-```
-break do in typeof
-case else instanceof var
-catch export new void
-class extends return while
-const finally super with
-continue for switch yield
-debugger function this
-default if throw
-delete import try
+```js
+break       do          in            typeof
+case        else        instanceof    var
+catch       export      new           void
+class       extends     return        while
+const       finally     super         with
+continue    for         switch        yield
+debugger    function    this
+default     if          throw
+delete      import      try
 ```
 
 ECMA-262还描述了另外一组不能用作标识符的**保留字**。以下是所有ES6中定义的保留字：
 
-```
-Always reserved:
+```js
+始终保留:
+
 enum
 
-Reserved in strict mode:
-implements package public
-interface protected static
-let private
 
-Reserved in module code:
+严格模式下保留:
+
+implements  package     public
+interface   protected   static
+let         private
+
+
+模块代码中保留:
+
 await
 ```
 
 
 
 ## 3.3 变量
+
+有3个关键字可以声明变量：
+
+- `var`
+- `const`
+- `let`
+
+其中，`var`在ECMAScript的所有版本中都可以使用，而`const`和`let`只能在ECMAScript 6及更晚的版本中使用。
 
 ### 3.3.1 `var`关键字
 
@@ -95,7 +110,7 @@ var message = "hi";
 
 #### `var`声明的作用域
 
-注意，即用`var`操作符定义的变量将成为定义该变量的作用域中的局部变量。也就是说，如果在函数中使用`var`定义一个变量，那么这个变量在函数退出后就会被销毁，例如：
+注意，使用`var`操作符定义的变量会成为包含它的函数的局部变量。也就是说，如果在函数中使用`var`定义一个变量，那么这个变量在函数退出后就会被销毁，例如：
 
 ```js
 function test() {
@@ -125,7 +140,7 @@ var message = "hi",
 
 #### `var`声明提升（Declaration Hoisting）
 
-当使用`var`时，下面这样的声明是可行的。因为使用`var`关键字声明的变量会被提升到函数作用域的顶部：
+当使用`var`时，下面的代码不会报错。因为使用`var`关键字声明的变量会自动被提升到函数作用域的顶部：
 
 ```js
 function foo() {
@@ -162,15 +177,202 @@ foo(); // 36
 
 ### 3.3.2 `let`声明
 
+**`let`跟`var`最明显的区别是，`let`声明的范围是块作用域，而`var`声明的范围是函数作用域。这两个关键字声明的并不是不同类型的变量，它们只是指出变量在相关作用域如何存在。**
 
+```js
+if (true) {
+  var name = 'Matt';
+  console.log(name); // Matt
+}
+console.log(name);   // Matt
+
+if (true) {
+  let age = 26;
+  console.log(age);   // 26
+}
+console.log(age);     // ReferenceError: age没有定义
+```
+
+`let`也不允许同一个块作用域中出现冗余声明。这样会导致报错：
+
+```js
+var name;
+var name;
+
+let age;
+let age;  // SyntaxError；标识符age已经声明过了
+```
+
+嵌套使用相同的标识符不会报错，这是因为同一个块中没有重复声明：
+
+```js
+var name = 'Nicholas';
+console.log(name);    // 'Nicholas'
+if (true) {
+  var name = 'Matt';
+  console.log(name);  // 'Matt'
+}
+console.log(name);   // 'Matt'
+
+let age = 30;
+console.log(age);    // 30
+if (true) {
+  let age = 26;
+  console.log(age);  // 26
+}
+console.log(age);    // 30
+```
+
+对声明冗余报错不会因混用`let`和`var`而受影响。
+
+```js
+var name;
+let name; // SyntaxError
+
+let age;
+var age; // SyntaxError
+```
+
+#### 暂时性死区
+
+`let`与`var`的另一个重要的区别，就是`let`声明的变量不会在作用域中被提升。
+
+```js
+// name会被提升
+console.log(name); // undefined
+var name = 'Matt';
+
+// age不会被提升
+console.log(age); // ReferenceError：age没有定义
+let age = 26;
+```
+
+在解析代码时，JavaScript引擎也会注意出现在块后面的`let`声明，只不过在此之前不能以任何方式来引用未声明的变量。在`let`声明之前的执行瞬间被称为“暂时性死区”（temporal dead zone），在此阶段引用任何后面才声明的变量都会抛出`ReferenceError`。
+
+#### 全局声明
+
+与`var`关键字不同，使用`var`在全局作用域中声明的变量会成为`window`对象的属性，`let`声明的变量则不会。
+
+```js
+var name = 'Matt';
+console.log(window.name); // 'Matt'
+
+let age = 26;
+console.log(window.age);  // undefined
+```
+
+不过，`let`声明仍然是在全局作用域中发生的，相应变量会在页面的生命周期内存续。因此，为了避免`SyntaxError`，必须确保页面不会重复声明同一个变量。
+
+#### 条件声明
+
+对于`let`这个新的ES6声明关键字，不能依赖条件声明模式。
+
+#### `for`循环中的`let`声明
+
+在`let`出现之前，`for`循环定义的迭代变量会渗透到循环体外部：
+
+```js
+for (var i = 0; i < 5; ++i) {
+  // 循环逻辑
+}
+console.log(i); // 5
+```
+
+改成使用`let`之后，这个问题就消失了，因为迭代变量的作用域仅限于`for`循环块内部：
+
+```js
+for (let i = 0; i < 5; ++i) {
+  // 循环逻辑
+}
+console.log(i); // ReferenceError: i没有定义
+```
+
+在使用`var`的时候，最常见的问题就是对迭代变量的奇特声明和修改：
+
+```js
+for (var i = 0; i < 5; ++i) {
+    setTimeout(() => console.log(i), 0)
+}
+// 你可能以为会输出0、1、2、3、4
+// 实际上会输出5、5、5、5、5
+```
+
+而在使用`let`声明迭代变量时，JavaScript引擎在后台会为每个迭代循环声明一个新的迭代变量：
+
+```js
+for (let i = 0; i < 5; ++i) {
+    setTimeout(() => console.log(i), 0)
+}
+// 会输出0、1、2、3、4
+```
+
+这种每次迭代声明一个独立变量实例的行为适用于所有风格的`for`循环，包括`for-in`和`for-of`循环。
 
 ### 3.3.3 `const`声明
 
+`const`的行为与`let`基本相同，唯一一个重要的区别是用它声明变量时必须同时初始化变量，且尝试修改`const`声明的变量会导致运行时错误。
 
+```js
+const age = 26;
+age = 36; // TypeError: 给常量赋值
 
-### 3.3.4 Declaration Styles and Best Practices
+// const也不允许重复声明
+const name = 'Matt';
+const name = 'Nicholas'; // SyntaxError
 
+// const声明的作用域也是块
+const name = 'Matt';
+if (true) {
+  const name = 'Nicholas';
+}
+console.log(name); // Matt
+```
 
+`const`声明的限制只适用于它指向的变量的引用。换句话说，如果`const`变量引用的是一个对象，那么修改这个对象内部的属性并不违反`const`的限制。
+
+```js
+const person = {};
+person.name = 'Matt';  // ok
+```
+
+即使JavaScript引擎会为`for`循环中的`let`声明分别创建独立的变量实例，而且`const`变量跟`let`变量很相似，也不能用`const`来声明迭代变量（因为迭代变量会自增）：
+
+```js
+for (const i = 0; i < 10; ++i) {} // TypeError：给常量赋值
+```
+
+不过，如果你只想用`const`声明一个不会被修改的`for`循环变量，那也是可以的。也就是说，每次迭代只是创建一个新变量。这对`for-of`和`for-in`循环特别有意义：
+
+```js
+let i = 0;
+for (const j = 7; i < 5; ++i) {
+  console.log(j);
+}
+// 7, 7, 7, 7, 7
+
+for (const key in {a: 1, b: 2}) {
+  console.log(key);
+}
+// a, b
+
+for (const value of [1,2,3,4,5]) {
+  console.log(value);
+}
+// 1, 2, 3, 4, 5
+```
+
+### 3.3.4 声明风格及最佳实践 (Declaration Styles and Best Practices)
+
+1. **不使用`var`**
+
+   限制自己只使用`let`和`const`有助于提升代码质量，因为变量有了明确的作用域、声明位置，以及不变的值。
+    
+
+2. **`const`优先，`let`次之**
+
+   使用`const`声明可以让浏览器运行时强制保持变量不变，也可以让静态代码分析工具提前发现不合法的赋值操作。因此，很多开发者认为应该优先使用`const`来声明变量，只在提前知道未来会有修改时，再使用`let`。这样可以让开发者更有信心地推断某些变量的值永远不会变，同时也能迅速发现因意外赋值导致的非预期行为。
+
+   
 
 ## 3.4 数据类型
 
