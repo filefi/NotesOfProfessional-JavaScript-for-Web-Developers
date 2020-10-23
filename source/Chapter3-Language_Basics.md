@@ -750,7 +750,7 @@ let lastName = `Jingleheimerschmidt`
 | `\'`       | 单引号（`'`），在用单引号表示的字符串中使用。例如：`'He said, \'hey.\''` |
 | `\"`       | 双引号（`"`），在用双引号表示的字符串中使用。例如：`"He said, \"hey.\""` |
 | `\xnn`     | 以十六进制代码`nn`表示的一个字符（其中`n`为0～F）。例如，`\x41`表示`"A"` |
-| `\unnnn`   | 以十六进制代码`nnnn`表示的一个Unicode字符（其中`n`为0～F）。例如，`\u03a3`表示希腊字符Σ |
+| `\unnnn`   | 以十六进制编码`nnnn`表示的Unicode字符（其中`n`是十六进制数字0~F），例如`\u03a3`等于希腊字符`"Σ"` |
 
 ![](_static/images/Chapter3-Language_Basics.assets/image-20200422225848537.png)
 
@@ -763,7 +763,7 @@ console.log(text.length); // 28
 
 #### 字符串的特点
 
-ECMAScript中的字符串是不可变的。要改变某个变量保存的字符串，首先要销毁原来的字符串，然后再用另一个包含新值的字符串填充该变量，例如：
+ECMAScript中的字符串是不可变的（immutable）。要修改某个变量中的字符串值，必须先销毁原始的字符串，然后将包含新值的另一个字符串保存到该变量，例如：
 
 ```js
 let lang = "Java";
@@ -772,20 +772,21 @@ lang = lang + "Script";
 
 #### 转换为字符串
 
-要把一个值转换为一个字符串有2种方式
+要把一个值转换为一个字符串有2种方式：
 
 - 使用`toString()`方法。除了`null`和`undefined`值，数值、布尔值、对象和字符串值都有`toString()`方法。
 - 转型函数`String()`能够将任何类型的值转换为字符串。
 
 `toString()`方法唯一要做的就是返回相应值的字符串表现：
+
 ```js
 let age = 11;
-let ageAsString = age.toString(); // 字符串 "11"
+let ageAsString = age.toString();      // 字符串"11"
 let found = true;
-let foundAsString = found.toString(); // 字符串 "true"
+let foundAsString = found.toString();  // 字符串"true"
 ```
 
-调用数值的`toString()`方法时，可以传递一个参数：输出数值的基数。默认为10进制。
+调用数值的`toString()`方法时，可以传递一个参数：输出数值的进制。默认为10进制。
 ```js
 let num = 10;
 console.log(num.toString()); // "10"
@@ -815,7 +816,7 @@ alert(String(value4));     // "undefined"
 
 #### 模板字面量（Template Literals）
 
-ECMAScript 6支持使用模板字面量定义字符串。模板字面量遵循换行符，可以定义多行内容。
+ECMAScript 6支持使用模板字面量定义字符串。模板字面量保留换行符，可以定义多行内容。
 
 ```js
 let myMultiLineString = 'first line\nsecond line';
@@ -844,38 +845,217 @@ let pageHTML = `
 </div>`;
 ```
 
-由于模板字面量将与反引号内的空格完全匹配，因此在定义它们时需要格外小心。
+由于模板字面量将与反引号内的空格完全匹配，因此在定义它们时需要格外小心。格式正确的模板字符串可能会看起来缩进不当：
 
 ```js
-// This template literal has 25 spaces following the line return character
+// 这个模板字面量在换行符之后有25个空格符
 let myTemplateLiteral = `first line
                          second line`;
-console.log(myTemplateLiteral.length); // 47
+console.log(myTemplateLiteral.length);  // 47
 
-// This template literal begins with a line return character
+// 这个模板字面量以一个换行符开头
 let secondTemplateLiteral = `
 first line
 second line`;
 console.log(secondTemplateLiteral[0] === '\n'); // true
 
-// This template literal has no unexpected whitespace characters
+// 这个模板字面量没有意料之外的字符
 let thirdTemplateLiteral = `first line
 second line`;
-console.log(thirdTemplateLiteral[0]);
-// f
+console.log(thirdTemplateLiteral);
+// first line
+// second line
 ```
 
 
 
-#### Interpolation
+#### 字符串插值 (Interpolation)
+
+模板字面量最常用的一个特性是支持字符串插值，也就是可以在一个连续定义中插入一个或多个值。技术上讲，模板字面量不是字符串，而是一种特殊的JavaScript句法表达式，只不过求值后得到的是字符串。模板字面量在定义时立即求值并转换为字符串实例，任何插入的变量也会从它们最接近的作用域中取值。
+
+字符串插值通过在`${}`中使用一个JavaScript表达式实现：
+
+```js
+let value = 5;
+let exponent = 'second';
+
+// 以前，字符串插值是这样实现的：
+let interpolatedString = value + ' to the ' + exponent + ' power is ' + (value * value);
+
+// 现在，可以用模板字面量这样实现：
+let interpolatedTemplateLiteral = `${ value } to the ${ exponent } power is ${ value * value }`;
+
+console.log(interpolatedString);           // 5 to the second power is 25
+console.log(interpolatedTemplateLiteral);  // 5 to the second power is 25
+```
+
+所有插入的值都会使用`toString()`强制转型为字符串，而且任何JavaScript表达式都可以用于插值。嵌套的模板字符串无须转义：
+
+```js
+console.log(`Hello, ${ `World` }!`);  // Hello, World!
+```
+
+将表达式转换为字符串时会调用`toString()`：
+
+```js
+let foo = { toString: () => 'World' };
+console.log(`Hello, ${ foo }!`);      // Hello, World!
+```
+
+在插值表达式中可以调用函数和方法：
+
+```js
+function capitalize(word) {
+  return `${ word[0].toUpperCase() }${ word.slice(1) }`;
+}
+console.log(`${ capitalize('hello') }, ${ capitalize('world') }!`); // Hello, World!
+```
+
+此外，模板也可以插入自己之前的值：
+
+```js
+let value = '';
+function append() {
+  value = `${value}abc`
+  console.log(value);
+}
+append();  // abc
+append();  // abcabc
+append();  // abcabcabc
+```
 
 
 
-#### Template Literal Tag Functions
+#### 模板字面量标签函数 (Template Literal Tag Functions)
+
+模板字面量也支持定义**标签函数**（tag function），而通过标签函数可以自定义插值行为。标签函数会接收被插值记号分隔后的模板和对每个表达式求值的结果。
+
+标签函数本身是一个常规函数，通过前缀到模板字面量来应用自定义行为，如下例所示。标签函数接收到的参数依次是原始字符串数组和对每个表达式求值的结果。这个函数的返回值是对模板字面量求值得到的字符串。
+
+最好通过一个例子来理解：
+
+```js
+let a = 6;
+let b = 9;
+
+function simpleTag(strings, aValExpression, bValExpression, sumExpression) {
+  console.log(strings);
+  console.log(aValExpression);
+  console.log(bValExpression);
+  console.log(sumExpression);
+
+  return 'foobar';
+}
+
+let untaggedResult = `${ a } + ${ b } = ${ a + b }`;
+let taggedResult = simpleTag`${ a } + ${ b } = ${ a + b }`;
+// ["", " + ", " = ", ""]
+// 6
+// 9
+// 15
+
+console.log(untaggedResult);   // "6 + 9 = 15"
+console.log(taggedResult);     // "foobar"
+```
+
+因为表达式参数的数量是可变的，所以通常应该使用剩余操作符（rest operator）将它们收集到一个数组中：
+
+```js
+let a = 6;
+let b = 9;
+
+function simpleTag(strings, ...expressions) {
+  console.log(strings);
+  for(const expression of expressions) {
+    console.log(expression);
+  }
+
+  return 'foobar';
+}
+
+let taggedResult = simpleTag`${ a } + ${ b } = ${ a + b }`;
+// ["", " + ", " = ", ""]
+// 6
+// 9
+// 15
+
+console.log(taggedResult);  // "foobar"
+```
+
+对于有`n`个插值的模板字面量，传给标签函数的表达式参数的个数始终是`n`，而传给标签函数的第一个参数所包含的字符串个数则始终是`n+1`。因此，如果你想把这些字符串和对表达式求值的结果拼接起来作为默认返回的字符串，可以这样做：
+
+```js
+let a = 6;
+let b = 9;
+
+function zipTag(strings, ...expressions) {
+  return strings[0] +
+         expressions.map((e, i) => `${e}${strings[i + 1]}`)
+                    .join('');
+}
+
+let untaggedResult =    `${ a } + ${ b } = ${ a + b }`;
+let taggedResult = zipTag`${ a } + ${ b } = ${ a + b }`;
+
+console.log(untaggedResult);  // "6 + 9 = 15"
+console.log(taggedResult);    // "6 + 9 = 15"
+```
 
 
 
-#### Raw Strings
+#### 原始字符串 (Raw Strings)
+
+使用模板字面量也可以直接获取原始的模板字面量内容（如换行符或Unicode字符），而不是被转换后的字符表示。为此，可以使用默认的`String.raw`标签函数：
+
+```js
+// Unicode示例
+// \u00A9是版权符号
+console.log(`\u00A9`);            // ©
+console.log(String.raw`\u00A9`);  // \u00A9
+
+// 换行符示例
+console.log(`first line\nsecond line`);
+// first line
+// second line
+
+console.log(String.raw`first line\nsecond line`); // "first line\nsecond line"
+
+// 对实际的换行符来说是不行的
+// 它们不会被转换成转义序列的形式
+console.log(`first line
+second line`);
+// first line
+// second line
+
+console.log(String.raw`first line
+second line`);
+// first line
+// second line
+```
+
+另外，也可以通过标签函数的第一个参数，即字符串数组的`.raw`属性取得每个字符串的原始内容：
+
+```js
+function printRaw(strings) {
+  console.log('Actual characters:');
+  for (const string of strings) {
+    console.log(string);
+  }
+
+  console.log('Escaped characters;');
+  for (const rawString of strings.raw) {
+    console.log(rawString);
+  }
+}
+
+printRaw`\u00A9${ 'and' }\n`;
+// Actual characters:
+// ©
+//（换行符）
+// Escaped characters:
+// \u00A9
+// \n
+```
 
 
 
