@@ -366,8 +366,7 @@ for (const value of [1,2,3,4,5]) {
 1. **不使用`var`**
 
    限制自己只使用`let`和`const`有助于提升代码质量，因为变量有了明确的作用域、声明位置，以及不变的值。
-    
-
+   
 2. **`const`优先，`let`次之**
 
    使用`const`声明可以让浏览器运行时强制保持变量不变，也可以让静态代码分析工具提前发现不合法的赋值操作。因此，很多开发者认为应该优先使用`const`来声明变量，只在提前知道未来会有修改时，再使用`let`。这样可以让开发者更有信心地推断某些变量的值永远不会变，同时也能迅速发现因意外赋值导致的非预期行为。
@@ -376,7 +375,7 @@ for (const value of [1,2,3,4,5]) {
 
 ## 3.4 数据类型
 
-ECMAScript中有6种简单数据类型（也称为基本数据类型）：
+ECMAScript中有6种简单数据类型（也称为**原始类型**）：
 
 - `Undefined`
 - `Null`
@@ -392,122 +391,145 @@ ECMAScript中有6种简单数据类型（也称为基本数据类型）：
 
 鉴于ECMAScript是松散类型的，因此需要`typeof`来检测给定变量的数据类型。对一个值使用`typeof`操作符可能返回下列某个字符串：
 
-- `"undefined"`：如果这个值未定义；
-- `"boolean"`：如果这个值是布尔值；
-- `"string"`：如果这个值是字符串；
-- `"number"`：如果这个值是数值；
-- `"object"`：如果这个值是对象或`null`；
-- `"function"`：如果这个值是函数。
-- `"symbol"`: 如果值是Symbol。
+- `"undefined"`：表示值未定义；
+- `"boolean"`：表示值为布尔值；
+- `"string"`：表示值为字符串；
+- `"number"`：表示值为数值；
+- `"object"`：表示值为对象（而不是函数）或`null`；
+- `"function"`：表示值为函数。
+- `"symbol"`: 表示值为符号Symbol。
+
+> **注意**　严格来讲，函数在ECMAScript中被认为是对象，并不代表一种数据类型。可是，函数也有自己特殊的属性。为此，就有必要通过`typeof`操作符来区分函数和其他对象。
 
 像下面这样调用`typeof`操作符：
 
 ```js
 let message = "some string";
-console.log(typeof message); // "string"
-console.log(typeof(message)); // "string"
-console.log(typeof 95); // "number"
+console.log(typeof message);    // "string"
+//注意，因为typeof是一个操作符而不是函数，所以不需要参数（但可以使用参数）。
+console.log(typeof(message));   // "string"
+console.log(typeof 95);         // "number"
+console.log(typeof null)        // "object"
 ```
 
 ### 3.4.2 `Undefined`类型
 
-`Undefined`类型只有一个值，即特殊的`undefined`。在使用`var`或`let`声明变量但未对其加以初始化时，这个变量的值就是`undefined`，例如：
+`Undefined`类型只有一个值，就是特殊值`undefined`。当使用`var`或`let`声明了变量但没有初始化时，就相当于给变量赋予了`undefined`值：
 
 ```js
 let message;
 console.log(message == undefined); // true
 ```
 
+这个例子等同于如下示例：
+```js
+let message = undefined;
+console.log(message == undefined); // true
+```
+
 已声明但未初始化的变量与尚未声明的变量是不一样的：
 
 ```js
-let message; // this variable is declared but has a value of undefined
-// make sure this variable isn't declared
+let message;    // 这个变量被声明了，只是值为undefined
+
+// 确保没有声明过这个变量
 // let age
+
 console.log(message); // "undefined"
-console.log(age); // causes an error
+console.log(age);     // 报错
 ```
 
 对未初始化和未声明的变量执行`typeof`操作符都返回了`undefined`值：
 
 ```js
-let message; // this variable is declared but has a value of undefined
-// make sure this variable isn't declared
+let message; // 这个变量被声明了，只是值为undefined
+
+// 确保没有声明过这个变量
 // let age
+
 console.log(typeof message); // "undefined"
-console.log(typeof age); // "undefined"
+console.log(typeof age);     // "undefined"
 ```
 
-值`undefined`是假的（falsy）， 因此，您可以在需要的地方进行更简洁的检查：
+值`undefined`是假的（falsy），因此，如果需要，可以用更简洁的方式检测它：
 
 ```js
-let message; // this variable is declared but has a value of undefined
-// 'age' is not declared
+
+let message; // 这个变量被声明了，只是值为undefined
+// age没有声明
+
 if (message) {
-    // This block will not execute
+  // 这个块不会执行
 }
+
 if (!message) {
-    // This block will execute
+  // 这个块会执行
 }
+
 if (age) {
-    // This will throw an error
+  // 这里会报错
 }
 ```
 
 ### 3.4.3 Null类型
 
-`Null`类型是第2个只有一个值的数据类型，这个特殊的值是`null`。
-
-从逻辑角度来看，`null`值表示一个空对象指针，而这也正是使用`typeof`操作符检测`null`值时会返回`"object"`的原因，如下面的例子所示：
+`Null`类型同样只有一个值，即特殊值`null`。逻辑上讲，`null`值表示一个空对象指针，而这也正是使用`typeof`操作符检测`null`值时会返回`"object"`的原因：
 
 ```js
 let car = null;
 console.log(typeof car); // "object"
 ```
 
-只要意在保存对象的变量还没有真正保存对象，就应该明确地让该变量保存`null`值。这样一来，只要直接检查`null`值就可以知道相应的变量是否已经保存了一个对象的引用：
+在定义将来要保存对象值的变量时，建议使用`null`来初始化。这样，只要检查这个变量的值是不是`null`就可以知道这个变量是否在后来被重新赋予了一个对象的引用：
 
 ```js
-if (car != null){
-    // 对car对象执行某些操作
+if (car != null) {
+  // car是一个对象的引用
 }
 ```
 
 实际上，`undefined`值是派生自`null`值的，因此ECMA-262规定对它们的相等性测试要返回`true`：
 
 ```js
-console.log(null == undefined); // true
+console.log(null == undefined);  // true
+console.log(null === undefined); // false
 ```
 
-`null`类型是假的(falsy)， 因此，可以在需要的地方进行更简洁的检查：
+`null`类型是假的(falsy)， 因此，如果需要，可以用更简洁的方式检测它。不过要记住，也有很多其他可能的值同样是假值。所以一定要明确自己想检测的就是`null`这个字面值，而不仅仅是假值。
 
 ```js
 let message = null;
 let age;
+
 if (message) {
-// This block will not execute
+  // 这个块不会执行
 }
+
 if (!message) {
-// This block will execute
+  // 这个块会执行
 }
+
 if (age) {
-// This block will not execute
+  // 这个块不会执行
 }
+
 if (!age) {
-// This block will execute
+  // 这个块会执行
 }
 ```
 
+即使`null`和`undefined`有关系，它们的用途也是完全不一样的。如前所述，永远不必显式地将变量值设置为`undefined`。但`null`不是这样的。任何时候，只要变量要保存对象，而当时又没有那个对象可保存，就要用`null`来填充该变量。这样就可以保持`null`是空对象指针的语义，并进一步将其与`undefined`区分开来。
+
 ### 3.4.4 Boolean类型
 
-`Boolean`类型是ECMAScript中使用得最多的一种类型，该类型只有2个字面值：`true`和`false`。以下是为变量赋`Boolean`类型值的例子：
+`Boolean`类型是ECMAScript中使用得最多的一种类型，该类型只有2个字面值：`true`和`false`。这两个布尔值不同于数值，因此`true`不等于1，`false`不等于0。以下是为变量赋`Boolean`类型值的例子：
 
 ```js
 let found = true;
 let lost = false;
 ```
 
-ECMAScript中所有类型的值都有与这2个`Boolean`值等价的值。要将一个值转换为其对应的`Boolean`值，可以调用转型函数`Boolean()`：
+ECMAScript中所有类型的值都有与这两个`Boolean`值等价的值。要将一个值转换为其对应的`Boolean`值，可以调用转型函数`Boolean()`：
 
 ```js
 let message = "Hello world!";
@@ -520,9 +542,18 @@ let messageAsBoolean = Boolean(message);
 | :---------- | :--------------------------- | :--------------- |
 | `Boolean`   | `true`                       | `false`          |
 | `String`    | 任何非空字符串               | `""`（空字符串） |
-| `Number`    | 任何非零数字值（包括无穷大） | 0和`NaN`         |
+| `Number`    | 任何非零数字值（包括无穷值） | 0和`NaN`         |
 | `Object`    | 任何对象                     | `null`           |
-| `Undefined` | 不适用                       | `undefined`      |
+| `Undefined` | `N/A`（不存在）              | `undefined`      |
+
+理解以上转换非常重要，因为像`if`等流控制语句会自动执行其他类型值到布尔值的转换，例如：
+
+```js
+let message = "Hello world!";
+if (message) {
+  console.log("Value is true");
+}
+```
 
 ### 3.4.5 Number类型
 
@@ -531,17 +562,20 @@ let messageAsBoolean = Boolean(message);
 为支持各种数值类型，ECMA-262定义了不同的数值字面量格式：
 
 ```js
-let intNum = 55;                // 十进制整数
+let intNum = 55;  // 十进制整数
 
-let octalNum1 = 070;            // 八进制的56
-let octalNum2 = 079;            // 无效的八进制数值——解析为79
-let octalNum3 = 08;             // 无效的八进制数值——解析为8
+let octalNum1 = 070;  // 八进制的56
+let octalNum2 = 079;  // 无效的八进制值，当成79处理
+let octalNum3 = 08;   // 无效的八进制值，当成8处理
 
-let hexNum1 = 0xA;              // 十六进制的10
-let hexNum2 = 0x1f;             // 十六进制的31
+let hexNum1 = 0xA;   // 十六进制10
+let hexNum2 = 0x1f;  // 十六进制31
+
+let binNum1 = 0b101; // 二进制5
+let binNum2 = 0b11000000; // 二进制192
 ```
 
-> 八进制字面量在严格模式下是无效的，会导致支持该模式的JavaScript引擎抛出错误。
+> 八进制字面量在严格模式下是无效的，会导致JavaScript引擎抛出语法错误。ECMAScript 2015或ES6中的八进制值通过前缀`0o`来表示；严格模式下，前缀`0`会被视为语法错误，如果要表示八进制值，应该使用前缀`0o`。
 
 > JavaScript可以保存正零（+0）和负零（-0），正零和负零被认为相等。
 
@@ -552,28 +586,28 @@ let hexNum2 = 0x1f;             // 十六进制的31
 ```js
 let floatNum1 = 1.1;
 let floatNum2 = 0.1;
-let floatNum3 = .1; // valid, but not recommended
+let floatNum3 = .1;   // 有效，但不推荐
 ```
 
-由于浮点数值占用的内存空间是整数值的2倍，ECMAScript会不失时机地将浮点数值转换为整数值：
+由于浮点数值占用的内存空间是整数值的2倍，所以ECMAScript总是想方设法把值转换为整数：
 
 ```js
-let floatNum1 = 1.;             // 小数点后面没有数字——解析为1
-let floatNum2 = 10.0;           // 整数——解析为10
+let floatNum1 = 1.;   // 小数点后面没有数字，当成整数1处理
+let floatNum2 = 10.0; // 小数点后面是零，当成整数10处理
 ```
 
-对于那些极大或极小的数值，可以用e表示法（即科学计数法）表示的浮点数值表示：
+对于那些极大或极小的数值，可以用e表示法（即科学计数法）表示的浮点数值表示。默认情况下，ECMAScript会将小数点后至少包含6个零的浮点值转换为科学记数法（例如，0.000 000 3会被转换为3e-7）。
 
 ```js
 let floatNum = 3.125e7; // equal to 31250000
 let floatNum2 = 3e-17; // 等于0.00000000000000003
 ```
 
-#### 数值范围
+#### 值的范围
 
 - 能够表示的最小数值保存在`Number.MIN_VALUE`中：在大多数浏览器中，这个值是5e-324；
 - 能够表示的最大数值保存在`Number.MAX_VALUE`中：在大多数浏览器中，这个值是1.7976931348623157e+308。
-- 超出JavaScript数值范围的值将被自动转换成特殊的`Infinity`值。如果这个数值是负数，则会被转换成`-Infinity`（负无穷），如果是正数，则会被转换成`Infinity`（正无穷）。
+- 超出JavaScript数值范围的值将被自动转换成特殊的`Infinity`（无穷）值。如果这个数值是负数，则会被转换成`-Infinity`（负无穷），如果是正数，则会被转换成`Infinity`（正无穷）。
 - 属性`Number.NEGATIVE_INFINITY`和`Number.POSITIVE_INFINITY`分别保存着`-Infinity`和`Infinity`。
 
 使用`isFinite()`函数来确定一个数值是不是有穷的（位于最小和最大的数值之间）：
@@ -586,89 +620,107 @@ console.log(isFinite(result)); // false
 
 #### `NaN`非数值
 
-`NaN`，即非数值（Not a Number）是一个特殊的数值，这个数值用于表示一个本来要返回数值的操作数未返回数值的情况（这样就不会抛出错误了）。
+`NaN`，即非数值（Not a Number）是一个特殊的数值，用于表示一个本来要返回数值的操作未返回数值的情况（这样就不会抛出错误了）。
 
-`NaN`本身有2个非同寻常的特点：
+`NaN`本身有2个特点：
 
-- 任何涉及`NaN`的操作（例如`NaN`/10）都会返回`NaN`，这个特点在多步计算中有可能导致问题。
+- 任何涉及`NaN`的操作（例如`NaN/10`）都会返回`NaN`，这个特点在多步计算中有可能导致问题。
 - `NaN`与任何值都不相等，包括`NaN`本身。
+
+但在ECMAScript中，`0`、`+0`或`-0`相除会返回`NaN`：
+
+```js
+console.log(0/0);    // NaN
+console.log(-0/+0);  // NaN复制代码
+```
+
+如果分子是非0值，分母是有符号0或无符号0，则会返回`Infinity`或`-Infinity`：
+
+```js
+console.log(5/0);   // Infinity
+console.log(5/-0);  // -Infinity
+```
 
 `isNaN()`函数会尝试将参数转换为数值，如果不能被转换为数值，则返回`true`，以此来确定其参数是否“不是数值”：
 
 ```js
-console.log(isNaN(NaN)); // true
-console.log(isNaN(10)); // false - 10 is a number
-console.log(isNaN("10")); // false - can be converted to number 10
-console.log(isNaN("blue")); // true - cannot be converted to a number
-console.log(isNaN(true)); // false - can be converted to number 1
+console.log(isNaN(NaN));     // true
+console.log(isNaN(10));      // false，10是数值
+console.log(isNaN("10"));    // false，可以转换为数值10
+console.log(isNaN("blue"));  // true，不可以转换为数值
+console.log(isNaN(true));    // false，可以转换为数值1
 ```
+
+> **注意**　虽然不常见，但`isNaN()`可以用于测试对象。
 
 #### 数制转换
 
 有3个函数可以把非数值转换为数值：
 
 - `Number()`：用于任何数据类型
-- `parseInt()`：用于把字符串转换成整形数值
+- `parseInt()`：用于把字符串转换成整形数值。`parseInt()`函数更专注于字符串是否包含数值模式。
 - `parseFloat()`：用于把字符串转换成浮点型数值。
 
 **`Number()`函数的转换规则如下：**
 
-- 如果是`Boolean`值，`true`和`false`将分别被转换为1和0。
-- 如果是数字值，只是简单的传入和返回。
+- 如果是`Boolean`值，`true`转换为1，`false`转换为0。
+- 如果是数字值，直接返回。
 - 如果是`null`值，返回0。
 - 如果是`undefined`，返回`NaN`。
 - 如果是字符串，遵循下列规则：
-    - 如果字符串中只包含数字（包括前面带加号或负号的情况），则将其转换为十进制数值，即`"1"`会变成1，`"123"`会变成123，而`"011"`会变成11（注意：前导的零被忽略了）；
-    - 如果字符串中包含有效的浮点格式，如`"1.1"`，则将其转换为对应的浮点数值（同样，也会忽略前导零）；
-    - 如果字符串中包含有效的十六进制格式，例如`"0xf"`，则将其转换为相同大小的十进制整数值；
-    - 如果字符串是空的（不包含任何字符），则将其转换为0；
-    - 如果字符串中包含除上述格式之外的字符，则将其转换为`NaN`。
+    - 如果字符串中只包含数字（包括前面带加号或负号的情况），则将其转换为十进制数值，即`"1"`会变成1，`"123"`会变成123，而`"011"`会变成11（注意：前导的零被忽略了）。
+    - 如果字符串包含有效的浮点格式，如`"1.1"`，则将其转换为对应的浮点数值（同样，也会忽略前导零）。
+    - 如果字符串包含有效的十六进制格式如`"0xf"`，则会转换为与该十六进制值对应的十进制整数值。
+    - 如果是空字符串（不包含字符），则返回0。
+    - 如果字符串包含除上述情况之外的其他字符，则返回`NaN`。
 - 如果是对象，则调用对象的`valueOf()`方法，然后依照前面的规则转换返回的值。如果转换的结果是`NaN`，则调用对象的`toString()`方法，然后再次依照前面的规则转换返回的字符串值。
 
 ```js
-let num1 = Number("Hello world!");      //NaN
-let num2 = Number("");                  //0
-let num3 = Number("000011");            //11
-let num4 = Number(true);                //1
+let num1 = Number("Hello world!");  // NaN
+let num2 = Number("");              // 0
+let num3 = Number("000011");        // 11
+let num4 = Number(true);            // 1
 ```
+
+> 注意，后面会讨论到的一元加操作符与`Number()`函数遵循相同的转换规则。
 
 **`parseInt()`函数转换规则：**
 
-- `parseInt()`函数会忽略字符串前面的空格，直至找到第一个非空格字符。
-- 如果第一个字符不是数字字符或者负号，`parseInt()`就会返回`NaN`；也就是说，用`parseInt()`转换空字符串会返回`NaN`（`Number()`对空字符返回0）。
-- 如果第一个字符是数字字符，`parseInt()`会继续解析第二个字符，直到解析完所有后续字符或者遇到了一个非数字字符。
+- `parseInt()`函数会忽略字符串前面的空格，从第一个非空格字符开始转换。
+- 如果第一个字符不是数值字符、加号或减号，`parseInt()`立即返回`NaN`。也就是说，用`parseInt("")`会返回`NaN`，而`Number("")`返回`0`。
+- 如果第一个字符是数值字符、加号或减号，则继续依次检测每个字符，直到字符串末尾，或碰到非数值字符。
 
 ```js
-let num1 = parseInt("1234blue"); // 1234
-let num2 = parseInt(""); // NaN
-let num3 = parseInt("0xA"); // 10 - hexadecimal
-let num4 = parseInt(22.5); // 22
-let num5 = parseInt("70"); // 70 - decimal
-let num6 = parseInt("0xf"); // 15 - hexadecimal
+let num1 = parseInt("1234blue");  // 1234
+let num2 = parseInt("");          // NaN
+let num3 = parseInt("0xA");       // 10，解释为十六进制整数
+let num4 = parseInt(22.5);        // 22
+let num5 = parseInt("70");        // 70，解释为十进制值
+let num6 = parseInt("0xf");       // 15，解释为十六进制整数
 ```
 
-可以为`parseInt()`函数提供第2个参数：转换时使用的基数（即多少进制）：
+可以为`parseInt()`函数提供第2个参数：转换时使用的基数（即进制）：
 
 ```js
 let num = parseInt("0xAF", 16); // 175
 let num1 = parseInt("AF", 16); // 175
 let num2 = parseInt("AF"); // NaN
 
-let num1 = parseInt("10", 2); // 2 - parsed as binary
-let num2 = parseInt("10", 8); // 8 - parsed as octal
-let num3 = parseInt("10", 10); // 10 - parsed as decimal
-let num4 = parseInt("10", 16); // 16 - parsed as hexadecimal
+let num1 = parseInt("10", 2);   // 2，按二进制解析
+let num2 = parseInt("10", 8);   // 8，按八进制解析
+let num3 = parseInt("10", 10);  // 10，按十进制解析
+let num4 = parseInt("10", 16);  // 16，按十六进制解析
 ```
 
 **`parseFloat()`函数转换规则与`parseInt()`函数类似：**
 
-- `parseFloat()`函数从第一个字符（位置0）开始解析每个字符，一直解析到字符串末尾，或者解析到遇见一个无效的浮点数字字符为止。也就是说，字符串中的第一个小数点是有效的，而第二个小数点就是无效的了，因此它后面的字符串将被忽略。举例来说，`"22.34.5"`将会被转换为22.34。
-- `parseFloat()`会忽略前导的零。
+- `parseFloat()`函数从第一个字符（位置0）开始解析每个字符，一直解析到字符串末尾，或者解析到一个无效的浮点数值字符为止。也就是说，字符串中的第一个小数点是有效的，而第二个小数点就是无效的了，因此它后面的字符串将被忽略。举例来说，`"22.34.5"`将会被转换为22.34。
+- `parseFloat()`始终忽略字符串开头的零。
 - 如果字符串包含的是一个可解析为整数的数（没有小数点，或者小数点后都是零），`parseFloat()`会返回整数。
 
 ```js
 let num1 = parseFloat("1234blue"); // 1234 （整数）
-let num2 = parseFloat("0xA"); // 0
+let num2 = parseFloat("0xA"); // 十六进制数值始终会返回0
 let num3 = parseFloat("22.5"); // 22.5
 let num4 = parseFloat("22.34.5"); // 22.34
 let num5 = parseFloat("0908.5"); // 908.5
