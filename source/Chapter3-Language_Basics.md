@@ -1061,9 +1061,11 @@ printRaw`\u00A9${ 'and' }\n`;
 
 ### 3.4.7 Symbol类型
 
-`Symbol`（符号）是ECMAScript 6新增的数据类型。符号是原始类型值，且符号实例是唯一、不可变的。符号的用途是确保对象属性使用唯一标识符，不会发生属性冲突的危险。
+`Symbol`（符号）是ECMAScript 6新增的数据类型。符号是原始类型值，且符号实例是唯一的、不可变的。符号的***用途***是**确保对象属性使用唯一标识符，不会发生属性冲突。**
 
 尽管听起来跟私有属性有点类似，但符号并不是为了提供私有属性的行为才增加的（尤其是因为Object API提供了方法，可以更方便地发现符号属性）。相反，符号就是用来创建唯一记号，进而用作非字符串形式的对象属性。
+
+
 
 #### 符号的基本用法
 
@@ -1176,6 +1178,8 @@ console.log(Symbol.keyFor(s2));  // undefined
 Symbol.keyFor(123); // TypeError: 123 is not a symbol
 ```
 
+
+
 #### 使用符号作为属性
 
 凡是可以使用字符串或数值作为属性的地方，都可以使用符号。这就包括了对象字面量属性和`Object.defineProperty()`/`Object.defineProperties()`定义的属性。对象字面量只能在计算属性语法中使用符号作为属性。
@@ -1252,6 +1256,8 @@ let barSymbol = Object.getOwnPropertySymbols(o)
 console.log(barSymbol);
 // Symbol(bar)
 ```
+
+
 
 #### 常用内置符号
 
@@ -1441,6 +1447,291 @@ count();
 ```
 
 
+
+#### `Symbol.match`
+
+根据ECMAScript规范，这个符号作为一个属性表示“一个正则表达式方法，该方法用正则表达式去匹配字符串。由`String.prototype.match()`方法使用”。`String.prototype.match()`方法会使用以`Symbol.match`为键的函数来对正则表达式求值。正则表达式的原型上默认有这个函数的定义，因此所有正则表达式实例默认是这个`String`方法的有效参数：
+
+```js
+console.log(RegExp.prototype[Symbol.match]);
+// f [Symbol.match]() { [native code] }
+
+console.log('foobar'.match(/bar/));
+// ["bar", index: 3, input: "foobar", groups: undefined]
+```
+
+给这个方法传入非正则表达式值会导致该值被转换为`RegExp`对象。如果想改变这种行为，让方法直接使用参数，则可以重新定义`Symbol.match`函数以取代默认对正则表达式求值的行为，从而让`match()`方法使用非正则表达式实例。`Symbol.match`函数接收一个参数，就是调用`match()`方法的字符串实例。返回的值没有限制：
+
+```js
+class FooMatcher {
+  static [Symbol.match](target) {
+    return target.includes('foo');
+  }
+}
+
+console.log('foobar'.match(FooMatcher)); // true
+console.log('barbaz'.match(FooMatcher)); // false
+
+class StringMatcher {
+  constructor(str) {
+    this.str = str;
+  }
+
+  [Symbol.match](target) {
+    return target.includes(this.str);
+  }
+}
+
+console.log('foobar'.match(new StringMatcher('foo'))); // true
+console.log('barbaz'.match(new StringMatcher('qux'))); // false
+```
+
+ 
+
+#### `Symbol.replace`
+
+根据ECMAScript规范，这个符号作为一个属性表示“一个正则表达式方法，该方法替换一个字符串中匹配的子串。由`String.prototype.replace()`方法使用”。`String.prototype.replace()`方法会使用以`Symbol.replace`为键的函数来对正则表达式求值。正则表达式的原型上默认有这个函数的定义，因此所有正则表达式实例默认是这个`String`方法的有效参数：
+
+```js
+console.log(RegExp.prototype[Symbol.replace]);
+// f [Symbol.replace]() { [native code] }
+
+console.log('foobarbaz'.replace(/bar/, 'qux'));
+// 'fooquxbaz'
+```
+
+给这个方法传入非正则表达式值会导致该值被转换为`RegExp`对象。如果想改变这种行为，让方法直接使用参数，可以重新定义`Symbol.replace`函数以取代默认对正则表达式求值的行为，从而让`replace()`方法使用非正则表达式实例。`Symbol.replace`函数接收两个参数，即调用`replace()`方法的字符串实例和替换字符串。返回的值没有限制：
+
+```js
+class FooReplacer {
+  static [Symbol.replace](target, replacement) {
+    return target.split('foo').join(replacement);
+  }
+}
+
+console.log('barfoobaz'.replace(FooReplacer, 'qux'));
+// "barquxbaz"
+
+class StringReplacer {
+  constructor(str) {
+    this.str = str;
+  }
+
+  [Symbol.replace](target, replacement) {
+    return target.split(this.str).join(replacement);
+  }
+}
+
+console.log('barfoobaz'.replace(new StringReplacer('foo'), 'qux'));
+// "barquxbaz"
+```
+
+ 
+
+#### `Symbol.search`
+
+根据ECMAScript规范，这个符号作为一个属性表示“一个正则表达式方法，该方法返回字符串中匹配正则表达式的索引。由`String.prototype.search()`方法使用”。`String.prototype.search()`方法会使用以`Symbol.search`为键的函数来对正则表达式求值。正则表达式的原型上默认有这个函数的定义，因此所有正则表达式实例默认是这个`String`方法的有效参数：
+
+```js
+console.log(RegExp.prototype[Symbol.search]);
+// f [Symbol.search]() { [native code] }
+
+console.log('foobar'.search(/bar/));
+// 3
+```
+
+给这个方法传入非正则表达式值会导致该值被转换为`RegExp`对象。如果想改变这种行为，让方法直接使用参数，可以重新定义`Symbol.search`函数以取代默认对正则表达式求值的行为，从而让`search()`方法使用非正则表达式实例。`Symbol.search`函数接收一个参数，就是调用`match()`方法的字符串实例。返回的值没有限制：
+
+```js
+class FooSearcher {
+  static [Symbol.search](target) {
+    return target.indexOf('foo');
+  }
+}
+
+console.log('foobar'.search(FooSearcher)); // 0
+console.log('barfoo'.search(FooSearcher)); // 3
+console.log('barbaz'.search(FooSearcher)); // -1
+
+class StringSearcher {
+  constructor(str) {
+    this.str = str;
+  }
+
+  [Symbol.search](target) {
+    return target.indexOf(this.str);
+  }
+}
+
+console.log('foobar'.search(new StringSearcher('foo'))); // 0
+console.log('barfoo'.search(new StringSearcher('foo'))); // 3
+console.log('barbaz'.search(new StringSearcher('qux'))); // -1
+```
+
+ 
+
+#### `Symbol.species`
+
+根据ECMAScript规范，这个符号作为一个属性表示“一个函数值，该函数作为创建派生对象的构造函数”。这个属性在内置类型中最常用，用于对内置类型实例方法的返回值暴露实例化派生对象的方法。用`Symbol.species`定义静态的获取器（getter）方法，可以覆盖新创建实例的原型定义：
+
+```js
+class Bar extends Array {}
+class Baz extends Array {
+  static get [Symbol.species]() {
+    return Array;
+  }
+}
+
+let bar = new Bar();
+console.log(bar instanceof Array); // true
+console.log(bar instanceof Bar);   // true
+bar = bar.concat('bar');
+console.log(bar instanceof Array); // true
+console.log(bar instanceof Bar);   // true
+
+let baz = new Baz();
+console.log(baz instanceof Array); // true
+console.log(baz instanceof Baz);   // true
+baz = baz.concat('baz');
+console.log(baz instanceof Array); // true
+console.log(baz instanceof Baz);   // false
+```
+
+ 
+
+#### `Symbol.split`
+
+根据ECMAScript规范，这个符号作为一个属性表示“一个正则表达式方法，该方法在匹配正则表达式的索引位置拆分字符串。由`String.prototype.split()`方法使用”。`String.prototype.split()`方法会使用以`Symbol.split`为键的函数来对正则表达式求值。正则表达式的原型上默认有这个函数的定义，因此所有正则表达式实例默认是这个`String`方法的有效参数：
+
+```js
+console.log(RegExp.prototype[Symbol.split]);
+// f [Symbol.split]() { [native code] }
+
+console.log('foobarbaz'.split(/bar/));
+// ['foo', 'baz']
+```
+
+给这个方法传入非正则表达式值会导致该值被转换为`RegExp`对象。如果想改变这种行为，让方法直接使用参数，可以重新定义`Symbol.split`函数以取代默认对正则表达式求值的行为，从而让`split()`方法使用非正则表达式实例。`Symbol.split`函数接收一个参数，就是调用`match()`方法的字符串实例。返回的值没有限制：
+
+```js
+class FooSplitter {
+  static [Symbol.split](target) {
+    return target.split('foo');
+  }
+}
+
+console.log('barfoobaz'.split(FooSplitter));
+// ["bar", "baz"]
+
+class StringSplitter {
+  constructor(str) {
+    this.str = str;
+  }
+
+  [Symbol.split](target) {
+    return target.split(this.str);
+  }
+}
+
+console.log('barfoobaz'.split(new StringSplitter('foo')));
+// ["bar", "baz"]
+```
+
+ 
+
+#### `Symbol.toPrimitive`
+
+根据ECMAScript规范，这个符号作为一个属性表示“一个方法，该方法将对象转换为相应的原始值。由`ToPrimitive`抽象操作使用”。很多内置操作都会尝试强制将对象转换为原始值，包括字符串、数值和未指定的原始类型。对于一个自定义对象实例，通过在这个实例的`Symbol.toPrimitive`属性上定义一个函数可以改变默认行为。
+
+根据提供给这个函数的参数（`string`、`number`或`default`），可以控制返回的原始值：
+
+```js
+class Foo {}
+let foo = new Foo();
+
+console.log(3 + foo);       // "3[object Object]"
+console.log(3 - foo);       // NaN
+console.log(String(foo));   // "[object Object]"
+
+class Bar {
+  constructor() {
+    this[Symbol.toPrimitive] = function(hint) {
+      switch (hint) {
+        case 'number':
+          return 3;
+        case 'string':
+          return 'string bar';
+        case 'default':
+        default:
+          return 'default bar';
+      }
+    }
+  }
+}
+let bar = new Bar();
+
+console.log(3 + bar);     // "3default bar"
+console.log(3 - bar);     // 0
+console.log(String(bar)); // "string bar"
+```
+
+ 
+
+#### `Symbol.toStringTag`
+
+根据ECMAScript规范，这个符号作为一个属性表示“一个字符串，该字符串用于创建对象的默认字符串描述。由内置方法`Object.prototype.toString()`使用”。
+
+通过`toString()`方法获取对象标识时，会检索由`Symbol.toStringTag`指定的实例标识符，默认为`"Object"`。内置类型已经指定了这个值，但自定义类实例还需要明确定义：
+
+```js
+let s = new Set();
+
+console.log(s);                      // Set(0) {}
+console.log(s.toString());           // [object Set]
+console.log(s[Symbol.toStringTag]);  // Set
+
+class Foo {}
+let foo = new Foo();
+
+console.log(foo);                      // Foo {}
+console.log(foo.toString());           // [object Object]
+console.log(foo[Symbol.toStringTag]);  // undefined
+
+class Bar {
+  constructor() {
+    this[Symbol.toStringTag] = 'Bar';
+  }
+}
+let bar = new Bar();
+
+console.log(bar);                      // Bar {}
+console.log(bar.toString());           // [object Bar]
+console.log(bar[Symbol.toStringTag]);  // Bar
+```
+
+ 
+
+#### `Symbol.unscopables`
+
+根据ECMAScript规范，这个符号作为一个属性表示“一个对象，该对象所有的以及继承的属性，都会从关联对象的`with`环境绑定中排除”。设置这个符号并让其映射对应属性的键值为`true`，就可以阻止该属性出现在`with`环境绑定中，如下例所示：
+
+```js
+let o = { foo: 'bar' };
+
+with (o) {
+  console.log(foo); // bar
+}
+
+o[Symbol.unscopables] = {
+  foo: true
+};
+
+with (o) {
+  console.log(foo); // ReferenceError
+}
+```
+
+> **注意**　不推荐使用`with`，因此也不推荐使用`Symbol.unscopables`。
 
 
 
