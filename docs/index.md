@@ -2,6 +2,22 @@
 
 [Chapter1-What_Is_JavaScript](Chapter1-What_Is_JavaScript.md)
 
+[Chapter2-JavaScript_in_HTML](Chapter2-JavaScript_in_HTML.md)
+
+[Chapter3-Language_Basics](Chapter3-Language_Basics.md)
+
+[Chapter4-Variables_Scope_And_Memory](Chapter4-Variables_Scope_And_Memory.md)
+
+[Chapter5-Basic_Reference_Types](Chapter5-Basic_Reference_Types.md)
+
+[Chapter6-Collection_Reference_Types](Chapter6-Collection_Reference_Types.md)
+
+[Chapter7-Iterators_and_Generators](Chapter7-Iterators_and_Generators.md)
+
+[Chapter8-Objects_Classes_and_Object-Oriented_Programming](Chapter8-Objects_Classes_and_Object-Oriented_Programming.md)
+
+[Chapter9-Proxies_and_Reflect](Chapter9-Proxies_and_Reflect.md)
+
 [Chapter10-Functions](Chapter10-Functions.md)
 
 [Chapter11-Promises_and_Async_Functions](Chapter11-Promises_and_Async_Functions.md)
@@ -22,8 +38,6 @@
 
 [Chapter19-Sctipting_Forms](Chapter19-Sctipting_Forms.md)
 
-[Chapter2-JavaScript_in_HTML](Chapter2-JavaScript_in_HTML.md)
-
 [Chapter20-JavaScript_APIs](Chapter20-JavaScript_APIs.md)
 
 [Chapter21-Error_Handling_and_Debugging](Chapter21-Error_Handling_and_Debugging.md)
@@ -42,19 +56,7 @@
 
 [Chapter28-Best_Practices](Chapter28-Best_Practices.md)
 
-[Chapter3-Language_Basics](Chapter3-Language_Basics.md)
 
-[Chapter4-Variables_Scope_And_Memory](Chapter4-Variables_Scope_And_Memory.md)
-
-[Chapter5-Basic_Reference_Types](Chapter5-Basic_Reference_Types.md)
-
-[Chapter6-Collection_Reference_Types](Chapter6-Collection_Reference_Types.md)
-
-[Chapter7-Iterators_and_Generators](Chapter7-Iterators_and_Generators.md)
-
-[Chapter8-Objects_Classes_and_Object-Oriented_Programming](Chapter8-Objects_Classes_and_Object-Oriented_Programming.md)
-
-[Chapter9-Proxies_and_Reflect](Chapter9-Proxies_and_Reflect.md)
 
 
 
