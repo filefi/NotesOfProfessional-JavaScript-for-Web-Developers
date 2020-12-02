@@ -20,7 +20,9 @@ JavaScript诞生于1995年。当时，它的主要目的是处理以前由服务
 - **文档对象模型（DOM）** ：提供访问和操作网页内容的方法和接口；
 - **浏览器对象模型（BOM）** ：提供与浏览器交互的方法和接口。
 
-<img src="img/Chapter1-What_Is_JavaScript.assets/04.d01z.01.png" alt="img" style="zoom: 25%;" />
+![](_static/images/Chapter1-What_Is_JavaScript.assets/04.d01z.01-1606875214261.png)
+
+
 
 ### 1.2.1 ECMAScript
 
@@ -82,7 +84,7 @@ ECMA-262给出了ECMAScript符合性的定义。要成为ECMAScript的实现，�
 
 在DOM中，这个页面可以通过下图所示的分层节点图表示。
 
-<img src="img/Chapter1-What_Is_JavaScript.assets/04.d01z.02.png" alt="04.d01z.02" style="zoom:15%;" />
+![](img/Chapter1-What_Is_JavaScript.assets/04.d01z.02.png)
 
 
 
